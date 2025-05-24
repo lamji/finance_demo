@@ -1,15 +1,14 @@
 /** @format */
 
-import React from 'react';
+import React from "react";
 import {
-    Alert,
     ScrollView,
     StatusBar,
     StyleSheet,
     TouchableOpacity,
     View,
 } from "react-native";
-import { Swipeable } from "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -20,132 +19,8 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import useHeaderTheme from "@/hooks/useHeaderTheme";
 import { deleteDebt } from "@/store/features/debtSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { format } from "date-fns";
 import { router } from "expo-router";
-
-// Swipeable Debt Item Component
-interface SwipeableDebtItemProps {
-  debt: any;
-  onDelete: (id: string) => void;
-  tintColor: string;
-  calculateProgress: (debt: any) => number;
-  isClosedDebt?: boolean;
-}
-
-function SwipeableDebtItem({ debt, onDelete, tintColor, calculateProgress, isClosedDebt = false }: SwipeableDebtItemProps) {
-  // Reference to close swipeable after delete action
-  const swipeableRef = React.useRef<Swipeable>(null);
-  
-  // Delete action handler with confirmation
-  const handleDelete = () => {
-    Alert.alert(
-      "Delete Debt",
-      "Are you sure you want to delete this debt?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          style: "destructive",
-          onPress: () => onDelete(debt.id)
-        }
-      ]
-    );
-    // Close swipeable
-    swipeableRef.current?.close();
-  };
-
-  // Render right actions (delete button)
-  const renderRightActions = () => {
-    return (
-      <TouchableOpacity
-        style={[styles.deleteAction, { backgroundColor: "#FF3B30" }]}
-        onPress={handleDelete}
-      >
-        <IconSymbol name="trash" size={24} color="#fff" />
-      </TouchableOpacity>
-    );
-  };
-
-  return (
-    <Swipeable
-      ref={swipeableRef}
-      friction={2}
-      rightThreshold={40}
-      renderRightActions={renderRightActions}
-    >
-      <ThemedView
-        style={[
-          styles.debtItem,
-          isClosedDebt && styles.closedDebtItem
-        ]}
-      >
-        {isClosedDebt ? (
-          <>
-            <View style={styles.debtHeader}>
-              <ThemedText type="defaultSemiBold">
-                {debt.bank}
-              </ThemedText>
-              <View style={[styles.badge, { backgroundColor: "#4CAF50" }]}>
-                <ThemedText style={styles.badgeText}>Paid</ThemedText>
-              </View>
-            </View>
-            <View style={styles.debtDetails}>
-              <ThemedText style={styles.detailText}>
-                Total Paid: ${debt.totalDebt}
-              </ThemedText>
-              <ThemedText style={styles.detailText}>
-                Closed: {format(new Date(debt.dueDate), "MMM d, yyyy")}
-              </ThemedText>
-            </View>
-          </>
-        ) : (
-          <>
-            <View style={styles.debtHeader}>
-              <ThemedText type="defaultSemiBold">
-                {debt.bank}
-              </ThemedText>
-              <ThemedText
-                type="defaultSemiBold"
-                style={{ color: tintColor }}
-              >
-                ${debt.totalDebt}
-              </ThemedText>
-            </View>
-            <View style={styles.debtDetails}>
-              <ThemedText style={styles.detailText}>
-                Monthly Payment: ${debt.monthlyPayment}
-              </ThemedText>
-              <ThemedText style={styles.detailText}>
-                Due: {format(new Date(debt.dueDate), "MMM d, yyyy")}
-              </ThemedText>
-            </View>
-            <View style={styles.progressContainer}>
-              <View
-                style={[
-                  styles.progressBar,
-                  { backgroundColor: tintColor + "20" },
-                ]}
-              >
-                <View
-                  style={[
-                    styles.progressFill,
-                    {
-                      backgroundColor: tintColor,
-                      width: `${calculateProgress(debt)}%`,
-                    },
-                  ]}
-                />
-              </View>
-              <ThemedText style={styles.progressText}>
-                {calculateProgress(debt)}% paid
-              </ThemedText>
-            </View>
-          </>
-        )}
-      </ThemedView>
-    </Swipeable>
-  );
-}
+import { SwipeableDebtItem } from "./SwipeableDebtItem";
 
 export default function DebtManagerScreen() {
   const { safeAreaBackground } = useHeaderTheme();
@@ -153,27 +28,28 @@ export default function DebtManagerScreen() {
   const tintColor = Colors[theme].tint;
   const dispatch = useAppDispatch();
   const debts = useAppSelector((state) => state.debt.debts);
-    // Calculate progress percentage based on paid amount vs total debt
+
+  // Calculate progress percentage based on paid amount vs total debt
   const calculateProgress = (debt: any) => {
     // If we have totalPaid in the debt object, use it
     if (debt.totalPaid !== undefined) {
       const progress = (debt.totalPaid / debt.totalDebt) * 100;
       return Math.min(Math.round(progress), 100); // Ensure it doesn't exceed 100%
     }
-    
+
     // If we have paidAmount instead
     if (debt.paidAmount !== undefined) {
       const progress = (debt.paidAmount / debt.totalDebt) * 100;
       return Math.min(Math.round(progress), 100);
     }
-    
+
     // If we have remaining balance
     if (debt.remainingBalance !== undefined) {
       const paidAmount = debt.totalDebt - debt.remainingBalance;
       const progress = (paidAmount / debt.totalDebt) * 100;
       return Math.min(Math.round(progress), 100);
     }
-    
+
     // Fallback (mock data for now)
     return Math.floor(Math.random() * 80) + 10; // Random between 10-90% for demo
   };
@@ -187,7 +63,7 @@ export default function DebtManagerScreen() {
   console.log("Closed Loans: ", closedLoans);
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar
         backgroundColor={safeAreaBackground}
         barStyle={theme === "dark" ? "light-content" : "dark-content"}
@@ -200,17 +76,23 @@ export default function DebtManagerScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerContainer}>
-            <View style={styles.cardsContainer}>              <ThemedView
+            <View style={styles.cardsContainer}>
+              <ThemedView
                 style={[
-                  styles.card, 
-                  { 
+                  styles.card,
+                  {
                     backgroundColor: "#4CAF50",
-                    borderColor: "#388E3C", 
+                    borderColor: "#388E3C",
                     borderWidth: 1,
-                  }
+                  },
                 ]}
               >
-                <View style={[styles.cardIconBackground, { backgroundColor: "#388E3C" }]} />
+                <View
+                  style={[
+                    styles.cardIconBackground,
+                    { backgroundColor: "#388E3C" },
+                  ]}
+                />
                 <ThemedText style={[styles.cardLabel, { color: "#E8F5E9" }]}>
                   Active Loans
                 </ThemedText>
@@ -218,8 +100,10 @@ export default function DebtManagerScreen() {
                   {openLoans.length}
                 </ThemedText>
                 <View style={styles.cardDetails}>
-                  <ThemedText style={[styles.cardCaption, { color: "#E8F5E9" }]}>
-                   Ongoing
+                  <ThemedText
+                    style={[styles.cardCaption, { color: "#E8F5E9" }]}
+                  >
+                    Ongoing
                   </ThemedText>
                 </View>
                 <IconSymbol
@@ -231,15 +115,20 @@ export default function DebtManagerScreen() {
               </ThemedView>
               <ThemedView
                 style={[
-                  styles.card, 
-                  { 
+                  styles.card,
+                  {
                     backgroundColor: "#9E9E9E",
-                    borderColor: "#757575", 
+                    borderColor: "#757575",
                     borderWidth: 1,
-                  }
+                  },
                 ]}
               >
-                <View style={[styles.cardIconBackground, { backgroundColor: "#757575" }]} />
+                <View
+                  style={[
+                    styles.cardIconBackground,
+                    { backgroundColor: "#757575" },
+                  ]}
+                />
                 <ThemedText style={[styles.cardLabel, { color: "#F5F5F5" }]}>
                   Closed Loans
                 </ThemedText>
@@ -247,7 +136,9 @@ export default function DebtManagerScreen() {
                   {closedLoans.length}
                 </ThemedText>
                 <View style={styles.cardDetails}>
-                  <ThemedText style={[styles.cardCaption, { color: "#F5F5F5" }]}>
+                  <ThemedText
+                    style={[styles.cardCaption, { color: "#F5F5F5" }]}
+                  >
                     Paid off
                   </ThemedText>
                 </View>
@@ -284,9 +175,9 @@ export default function DebtManagerScreen() {
             {openLoans.length > 0 ? (
               <View style={styles.debtsList}>
                 {openLoans.map((debt) => (
-                  <SwipeableDebtItem 
-                    key={debt.id} 
-                    debt={debt} 
+                  <SwipeableDebtItem
+                    key={debt.id}
+                    debt={debt}
                     onDelete={(id) => dispatch(deleteDebt(id))}
                     tintColor={tintColor}
                     calculateProgress={calculateProgress}
@@ -304,29 +195,9 @@ export default function DebtManagerScreen() {
               </ThemedView>
             )}
           </View>
-
-          {closedLoans.length > 0 && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <ThemedText type="subtitle">Closed Debts</ThemedText>
-              </View>
-              <View style={styles.debtsList}>
-                {closedLoans.map((debt) => (
-                  <SwipeableDebtItem 
-                    key={debt.id} 
-                    debt={debt} 
-                    onDelete={(id) => dispatch(deleteDebt(id))}
-                    tintColor={tintColor}
-                    calculateProgress={calculateProgress}
-                    isClosedDebt={true}
-                  />
-                ))}
-              </View>
-            </View>
-          )}
         </ScrollView>
       </SafeAreaView>
-    </>
+    </GestureHandlerRootView>
   );
 }
 
@@ -344,7 +215,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     padding: 16,
     gap: 16,
-  },  card: {
+  },
+  card: {
     flex: 1,
     padding: 20,
     borderRadius: 16,
@@ -354,17 +226,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 8,
     minHeight: 180,
-    position: 'relative',
-    overflow: 'hidden',
+    position: "relative",
+    overflow: "hidden",
   },
   cardIcon: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
     right: 20,
     opacity: 0.8,
   },
   cardIconBackground: {
-    position: 'absolute',
+    position: "absolute",
     top: -20,
     right: -20,
     width: 150,
@@ -374,11 +246,11 @@ const styles = StyleSheet.create({
   },
   cardLabel: {
     fontSize: 12,
-  
-    textTransform: 'uppercase',
+
+    textTransform: "uppercase",
     letterSpacing: 1,
     opacity: 0.7,
-  },  
+  },
   cardValue: {
     fontSize: 30,
     fontWeight: "bold",
@@ -386,7 +258,7 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   cardDetails: {
-    position: 'absolute', 
+    position: "absolute",
     bottom: 20,
     left: 20,
   },
@@ -394,7 +266,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: 0.8,
     opacity: 0.6,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     marginTop: 4,
   },
   sectionListing: {
@@ -462,7 +334,8 @@ const styles = StyleSheet.create({
   detailText: {
     fontSize: 14,
     opacity: 0.7,
-  },  progressContainer: {
+  },
+  progressContainer: {
     marginTop: 8,
   },
   progressBar: {
@@ -476,7 +349,7 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 12,
     opacity: 0.6,
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     marginTop: 4,
   },
   badge: {
