@@ -3,6 +3,11 @@
     "name": "tracker",
     "slug": "tracker",
     "version": "1.0.0",
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id"
+      }
+    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "tracker",

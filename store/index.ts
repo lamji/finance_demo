@@ -2,17 +2,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { persistReducer, persistStore } from 'redux-persist';
 
+import authReducer from './features/authSlice';
 import debtReducer from './features/debtSlice';
 
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['debt'], // Only persist debt reducer
+  whitelist: ['debt', 'auth'], // Persist both debt and auth reducers
 };
 
 const rootReducer = combineReducers({
   debt: debtReducer,
-  // Add other reducers here
+  auth: authReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface Debt {
   id: string;
@@ -6,11 +6,13 @@ interface Debt {
   totalDebt: string;
   monthlyPayment: string;
   term: string;
-  termType: 'months' | 'years';
+  termType: "months" | "years";
   startDate: string;
   dueDate: string;
   createdAt: string;
   updatedAt: string;
+  remaining_balance: number;
+  total_paid: number;
 }
 
 interface DebtState {
@@ -26,20 +28,22 @@ const initialState: DebtState = {
 };
 
 const debtSlice = createSlice({
-  name: 'debt',
+  name: "debt",
   initialState,
   reducers: {
     addDebt: (state, action: PayloadAction<Debt>) => {
       state.debts.push(action.payload);
     },
     updateDebt: (state, action: PayloadAction<Debt>) => {
-      const index = state.debts.findIndex(debt => debt.id === action.payload.id);
+      const index = state.debts.findIndex(
+        (debt) => debt.id === action.payload.id,
+      );
       if (index !== -1) {
         state.debts[index] = action.payload;
       }
     },
     deleteDebt: (state, action: PayloadAction<string>) => {
-      state.debts = state.debts.filter(debt => debt.id !== action.payload);
+      state.debts = state.debts.filter((debt) => debt.id !== action.payload);
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
@@ -50,5 +54,6 @@ const debtSlice = createSlice({
   },
 });
 
-export const { addDebt, updateDebt, deleteDebt, setLoading, setError } = debtSlice.actions;
+export const { addDebt, updateDebt, deleteDebt, setLoading, setError } =
+  debtSlice.actions;
 export default debtSlice.reducer;

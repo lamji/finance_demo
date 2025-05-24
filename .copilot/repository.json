@@ -1,0 +1,14 @@
+{
+    "scope": {
+        "instructions": [
+            "Do not modify unrelated code.",
+            "Only change code that is within the currently edited function or file.",
+            "Preserve formatting and comments.",
+            "Do not remove or change business logic unless explicitly prompted.",
+            "Follow single responsibility principle for functions.",
+            "In React Native, never place raw text inside <View>, <TouchableOpacity>, or similar components. Always wrap text content inside a <Text> component to avoid the warning: 'Text strings must be rendered within a <Text> component.'",
+            "Avoid inserting unnecessary JSX expressions like {\" \"}. Only use them if they are required for formatting or spacing.",
+            "Do not add JSX comments like {/* Menu displayed as overlay */} unless explicitly instructed. Keep the JSX clean and concise."
+        ]
+    }
+}

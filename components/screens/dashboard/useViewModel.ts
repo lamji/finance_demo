@@ -1,8 +1,8 @@
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import useHeaderTheme from '@/hooks/useHeaderTheme';
-import { router } from 'expo-router';
+import { IconSymbol } from "@/components/ui/IconSymbol";
+import useHeaderTheme from "@/hooks/useHeaderTheme";
+import { router } from "expo-router";
 
-type IconName = Parameters<typeof IconSymbol>[0]['name'];
+type IconName = Parameters<typeof IconSymbol>[0]["name"];
 
 export interface ActivityItem {
   title: string;
@@ -20,9 +20,9 @@ export interface ScheduleItem {
 }
 
 export interface WalletStats {
-  totalBalance: string;
-  totalDebt: string;
-  monthlyDue: string;
+  totalBalance: number;
+  totalDebt: number;
+  paid: number;
 }
 
 export interface QuickAction {
@@ -33,79 +33,79 @@ export interface QuickAction {
 }
 
 export default function useViewModel() {
-  const {theme,tintColor, headerBgColors,} = useHeaderTheme()
-
+  const { theme, tintColor, headerBgColors } = useHeaderTheme();
 
   // In a real app, these would come from an API or database
   const walletStats: WalletStats = {
-    totalBalance: '$2,750',
-    totalDebt: '$15,750',
-    monthlyDue: '$2,500',
+    totalBalance: 2750,
+    totalDebt: 15750,
+    paid: 2500,
   };
 
   const recentActivity: ActivityItem[] = [
     {
-      title: 'Payment Made',
-      description: 'Chase Sapphire',
-      amount: '-$500',
-      date: 'Today',
+      title: "Payment Made",
+      description: "Chase Sapphire",
+      amount: "-$500",
+      date: "Today",
       isPositive: false,
     },
     {
-      title: 'New Debt Added',
-      description: 'Home Improvement Loan',
-      amount: '+$5,000',
-      date: 'May 15, 2025',
+      title: "New Debt Added",
+      description: "Home Improvement Loan",
+      amount: "+$5,000",
+      date: "May 15, 2025",
       isPositive: true,
     },
   ];
 
   const scheduleItems: ScheduleItem[] = [
     {
-      title: 'Chase Sapphire',
-      dueDate: 'Jun 10',
-      amount: '$750',
+      title: "Chase Sapphire",
+      dueDate: "Jun 10",
+      amount: "$750",
       isPaid: false,
     },
     {
-      title: 'Student Loan',
-      dueDate: 'Jun 15',
-      amount: '$500',
+      title: "Student Loan",
+      dueDate: "Jun 15",
+      amount: "$500",
       isPaid: true,
     },
   ];
 
   const quickActions: QuickAction[] = [
-    {      id: 'add_debt',
-      title: 'Add Debt',
-      icon: 'plus.circle.fill',
+    {
+      id: "add_debt",
+      title: "Add Debt",
+      icon: "plus.circle.fill",
       onPress: () => {
-        router.push('/debts/add');
+        router.push("/debts/add");
       },
     },
     {
-      id: 'pay',
-      title: 'Pay',
-      icon: 'creditcard.fill',
+      id: "pay",
+      title: "Pay",
+      icon: "creditcard.fill",
       onPress: () => {
         // Payment action
-        console.log('Pay pressed');
+        console.log("Pay pressed");
       },
     },
     {
-      id: 'history',
-      title: 'History',
-      icon: 'house.fill',
+      id: "history",
+      title: "History",
+      icon: "house.fill",
       onPress: () => {
         // History action
-        console.log('History pressed');
+        console.log("History pressed");
       },
     },
   ];
 
   const headerConfig = {
     backgroundColor: headerBgColors,
-    userName: 'John Doe',
+    userName: "John Doe",
     safeAreaBackground: headerBgColors[theme],
   };
 
