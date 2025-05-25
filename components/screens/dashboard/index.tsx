@@ -1,6 +1,5 @@
 /** @format */
 
-import { router } from "expo-router";
 import {
   Platform,
   SafeAreaView,
@@ -8,54 +7,31 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  Animated,
 } from "react-native";
 
-import { Collapsible } from "@/components/Collapsible";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-import { Colors } from "@/constants/Colors";
 import { formatPHPCurrency } from "@/helper";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { logout } from "@/store/features/authSlice";
-import { useAppDispatch } from "@/store/hooks";
-import { useState } from "react";
 import useViewModel, {
+  formatTimeSinceBackup,
   ActivityItem as ActivityItemType,
-  ScheduleItem as ScheduleItemType,
 } from "./useViewModel";
 
 export default function DashboardScreen() {
-  const dispatch = useAppDispatch();
-  const [showLogoutMenu, setShowLogoutMenu] = useState(false);
   const {
     tintColor,
     walletStats,
     recentActivity,
-    scheduleItems,
     headerConfig,
+    handleBackupPress,
+    isBackingUp,
+    lastBackup,
+    timeSinceBackup,
+    bounceAnim,
+    progressPercentage,
   } = useViewModel();
-
-  const handleLogoutPress = () => {
-    setShowLogoutMenu(!showLogoutMenu);
-  };
-  const handleLogout = () => {
-    dispatch(logout());
-    router.replace("/login");
-  };
-
-  // Calculate progress percentage for debt payment
-  const calculateProgressPercentage = () => {
-    const totalDebt = walletStats.totalDebt;
-    const paid = walletStats.paid;
-
-    if (totalDebt === 0) return 0;
-
-    const percentage = (paid / totalDebt) * 100;
-    return Math.min(Math.max(percentage, 0), 100); // Clamp between 0-100
-  };
-
-  const progressPercentage = calculateProgressPercentage();
 
   return (
     <SafeAreaView
@@ -64,7 +40,10 @@ export default function DashboardScreen() {
         { backgroundColor: headerConfig.safeAreaBackground },
       ]}
     >
-      <ScrollView bounces={false}>
+      <ScrollView
+        bounces={false}
+        contentContainerStyle={styles.scrollViewContent}
+      >
         <View
           style={[
             styles.header,
@@ -82,73 +61,29 @@ export default function DashboardScreen() {
                 </ThemedText>
               </View>
               <TouchableOpacity
-                onPress={handleLogoutPress}
+                onPress={handleBackupPress}
                 style={styles.avatarButton}
               >
-                <View>
-                  <IconSymbol
-                    name="person.crop.circle.fill"
-                    size={40}
-                    color="#fff"
-                  />
-                  <View style={styles.notificationBadge}>
-                    <ThemedText style={styles.notificationCount}>3</ThemedText>
-                  </View>
-                </View>
-              </TouchableOpacity>
-
-              {showLogoutMenu && (
-                <TouchableOpacity
-                  style={styles.menuOverlay}
-                  onPress={() => setShowLogoutMenu(false)}
-                  activeOpacity={1}
+                <Animated.View
+                  style={[
+                    styles.backupContainer,
+                    { transform: [{ scale: bounceAnim }] },
+                  ]}
                 >
-                  <View
-                    style={[
-                      styles.logoutMenu,
-                      { position: "absolute", top: 65, right: 20 },
-                    ]}
-                  >
-                    <TouchableOpacity
-                      style={styles.menuNotificationItem}
-                      activeOpacity={0.7}
-                    >
-                      <View style={styles.menuItemContent}>
-                        <IconSymbol
-                          name="bell.fill"
-                          size={20}
-                          color={tintColor}
-                        />
-                        <ThemedText style={styles.menuItemText}>
-                          Notifications
-                        </ThemedText>
-                      </View>
-                      <View
-                        style={[
-                          styles.menuBadge,
-                          { backgroundColor: "#FF3B30" },
-                        ]}
-                      >
-                        <ThemedText style={styles.menuBadgeText}>3</ThemedText>
-                      </View>
-                    </TouchableOpacity>
-                    <View style={styles.menuDivider} />
-
-                    <TouchableOpacity
-                      style={styles.logoutButton}
-                      activeOpacity={0.7}
-                      onPress={handleLogout}
-                    >
-                      <IconSymbol
-                        name="rectangle.portrait.and.arrow.right"
-                        size={20}
-                        color="#FF3B30"
-                      />
-                      <ThemedText style={styles.logoutText}>Logout</ThemedText>
-                    </TouchableOpacity>
-                  </View>
-                </TouchableOpacity>
-              )}
+                  <IconSymbol
+                    name="cloud.fill"
+                    size={30}
+                    color={isBackingUp ? "#4CAF50" : "#fff"}
+                  />
+                  <ThemedText style={styles.backupTimeText}>
+                    {isBackingUp
+                      ? "Backing up..."
+                      : lastBackup
+                        ? formatTimeSinceBackup(timeSinceBackup)
+                        : "Not backed up"}
+                  </ThemedText>
+                </Animated.View>
+              </TouchableOpacity>
             </View>
             <View style={styles.walletCard}>
               <View style={styles.walletHeader}>
@@ -215,14 +150,6 @@ export default function DashboardScreen() {
               ))}
             </View>
           </ThemedView>
-
-          <Collapsible title="Payment Schedule">
-            <View style={styles.scheduleList}>
-              {scheduleItems.map((item, index) => (
-                <ScheduleItem key={index} {...item} />
-              ))}
-            </View>
-          </Collapsible>
         </ThemedView>
       </ScrollView>
     </SafeAreaView>
@@ -271,35 +198,6 @@ function ActivityItem({
   );
 }
 
-function ScheduleItem({ title, dueDate, amount, isPaid }: ScheduleItemType) {
-  const theme = useColorScheme() ?? "light";
-  const tintColor = Colors[theme].tint;
-
-  return (
-    <ThemedView style={styles.scheduleItem}>
-      <View>
-        <ThemedText type="defaultSemiBold">{title}</ThemedText>
-        <ThemedText style={styles.scheduleDate}>Due {dueDate}</ThemedText>
-      </View>
-      <View style={styles.scheduleRight}>
-        <ThemedText type="defaultSemiBold">{amount}</ThemedText>
-        <View
-          style={[
-            styles.statusBadge,
-            {
-              backgroundColor: isPaid ? "#4CAF50" : tintColor,
-            },
-          ]}
-        >
-          <ThemedText style={styles.statusText}>
-            {isPaid ? "Paid" : "Due"}
-          </ThemedText>
-        </View>
-      </View>
-    </ThemedView>
-  );
-}
-
 const styles = StyleSheet.create({
   menuOverlay: {
     position: "absolute",
@@ -314,6 +212,9 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  scrollViewContent: {
+    paddingBottom: Platform.OS === "ios" ? 80 : 80,
   },
   header: {
     paddingTop: 20,
@@ -713,5 +614,15 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 12,
     opacity: 0.8,
+  },
+  backupTimeText: {
+    color: "#fff",
+    fontSize: 12,
+    opacity: 0.8,
+  },
+  backupContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
 });

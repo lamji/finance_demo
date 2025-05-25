@@ -1,8 +1,29 @@
-import { IconSymbol } from "@/components/ui/IconSymbol";
 import useHeaderTheme from "@/hooks/useHeaderTheme";
 import { router } from "expo-router";
+import { Alert, Animated } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+// Debug variable - change this to test different subscription types
+const DEBUG_SUBSCRIPTION_TYPE: SubscriptionType = "guest"; // Change to "guest" | "one-time" | "monthly"
 
-type IconName = Parameters<typeof IconSymbol>[0]["name"];
+export type SubscriptionType = "guest" | "one-time" | "monthly";
+
+export const formatTimeSinceBackup = (seconds: number): string => {
+  if (seconds < 60) {
+    return `${seconds} secs ago`;
+  }
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return minutes === 1 ? "1 minute ago" : `${minutes} minutes ago`;
+  }
+
+  const hours = Math.floor(seconds / 3600);
+  if (hours === 1) {
+    return "1 hour ago";
+  }
+  return `${hours} hours ago`;
+};
 
 export interface ActivityItem {
   title: string;
@@ -25,15 +46,113 @@ export interface WalletStats {
   paid: number;
 }
 
-export interface QuickAction {
-  id: string;
-  title: string;
-  icon: IconName;
-  onPress: () => void;
-}
-
 export default function useViewModel() {
   const { theme, tintColor, headerBgColors } = useHeaderTheme();
+  const user = useSelector((state) => state.auth.user);
+  const [isBackingUp, setIsBackingUp] = useState(false);
+  const [lastBackup, setLastBackup] = useState<string | null>(null);
+  const [timeSinceBackup, setTimeSinceBackup] = useState<number>(0);
+  const bounceAnim = useRef(new Animated.Value(1)).current;
+
+  // Uses the debug variable for easy testing
+  const subscriptionType: SubscriptionType = DEBUG_SUBSCRIPTION_TYPE;
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (lastBackup) {
+      // Update immediately
+      const updateTime = () => {
+        const seconds = Math.floor(
+          (Date.now() - new Date(lastBackup).getTime()) / 1000,
+        );
+        setTimeSinceBackup(seconds);
+      };
+
+      updateTime();
+
+      // Then set up interval - update every second for the first hour, then every hour
+      interval = setInterval(() => {
+        updateTime();
+        const seconds = Math.floor(
+          (Date.now() - new Date(lastBackup).getTime()) / 1000,
+        );
+        if (seconds >= 3600) {
+          // After 1 hour, clear current interval and set new hourly interval
+          clearInterval(interval);
+          interval = setInterval(updateTime, 3600000); // Update every hour
+        }
+      }, 1000);
+    }
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [lastBackup]);
+
+  const startBounceAnimation = () => {
+    Animated.sequence([
+      Animated.timing(bounceAnim, {
+        toValue: 1.2,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.spring(bounceAnim, {
+        toValue: 1,
+        friction: 3,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      if (isBackingUp) {
+        startBounceAnimation(); // Loop animation while backing up
+      }
+    });
+  };
+
+  const simulateBackup = () => {
+    return new Promise((resolve) => {
+      const currentTime = new Date().toISOString();
+      setLastBackup(currentTime); // Set immediate feedback
+      setTimeout(() => {
+        resolve(true);
+      }, 2000); // Simulate 2 second backup
+    });
+  };
+
+  const handleBackupPress = async () => {
+    if (isBackingUp) return; // Prevent multiple backups
+
+    if (subscriptionType !== "monthly") {
+      Alert.alert(
+        "Premium Feature",
+        "Automatic backup is only available with monthly subscription.",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Upgrade Now",
+            onPress: () => {
+              router.push("/profile/upgrade");
+            },
+          },
+        ],
+      );
+      return false;
+    }
+
+    setIsBackingUp(true);
+    startBounceAnimation();
+
+    try {
+      await simulateBackup();
+    } finally {
+      setIsBackingUp(false);
+      bounceAnim.setValue(1); // Reset animation
+    }
+    return true;
+  };
 
   // In a real app, these would come from an API or database
   const walletStats: WalletStats = {
@@ -74,7 +193,7 @@ export default function useViewModel() {
     },
   ];
 
-  const quickActions: QuickAction[] = [
+  const quickActions = [
     {
       id: "add_debt",
       title: "Add Debt",
@@ -103,9 +222,22 @@ export default function useViewModel() {
     },
   ];
 
+  // Calculate progress percentage for debt payment
+  const calculateProgressPercentage = () => {
+    const totalDebt = walletStats.totalDebt;
+    const paid = walletStats.paid;
+
+    if (totalDebt === 0) return 0;
+
+    const percentage = (paid / totalDebt) * 100;
+    return Math.min(Math.max(percentage, 0), 100); // Clamp between 0-100
+  };
+
+  const progressPercentage = calculateProgressPercentage();
+
   const headerConfig = {
     backgroundColor: headerBgColors,
-    userName: "John Doe",
+    userName: user?.name || "Guest",
     safeAreaBackground: headerBgColors[theme],
   };
 
@@ -117,5 +249,11 @@ export default function useViewModel() {
     scheduleItems,
     quickActions,
     headerConfig,
+    handleBackupPress,
+    lastBackup,
+    timeSinceBackup,
+    isBackingUp,
+    bounceAnim,
+    progressPercentage,
   };
 }

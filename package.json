@@ -51,7 +51,9 @@
     "react-redux": "^9.2.0",
     "redux-persist": "^6.0.0",
     "yup": "^1.6.1",
-    "expo-network": "~7.1.5"
+    "expo-network": "~7.1.5",
+    "expo-background-fetch": "~13.1.5",
+    "expo-task-manager": "~13.1.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

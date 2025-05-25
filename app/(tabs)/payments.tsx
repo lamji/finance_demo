@@ -1,23 +1,12 @@
-import { ThemedText } from '@/components/ThemedText';
-import useHeaderTheme from '@/hooks/useHeaderTheme';
-import { StatusBar, StyleSheet, View } from 'react-native';
+import { StatusBar } from "react-native";
+
+import PaymentScreen from "@/components/screens/payment";
 
 export default function PaymentsScreen() {
-  const { safeAreaBackground, theme } = useHeaderTheme();
   return (
     <>
-      <StatusBar backgroundColor={safeAreaBackground} barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} />
-      <View style={[styles.container, { backgroundColor: safeAreaBackground }]}>
-        <ThemedText>Payments Screen</ThemedText>
-      </View>
+      <StatusBar backgroundColor="white" barStyle="dark-content" />
+      <PaymentScreen />
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

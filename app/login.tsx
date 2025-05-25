@@ -28,6 +28,7 @@ export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const { mutate: guestLoginMutation, isPending: isGuestLoading } =
     useGuestLogin();
+
   const handleGuestLogin = () => {
     guestLoginMutation(undefined, {
       onSuccess: (response) => {

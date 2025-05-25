@@ -4,23 +4,24 @@ import { ApiResponse, GuestLoginResponse } from "../types";
 
 const guestLogin = async (): Promise<ApiResponse<GuestLoginResponse>> => {
   try {
-    console.log("Attempting guest login with axios");
+    console.log("Attempting guest login");
 
-    // Log axios configuration
-    console.log("Axios config:", {
-      baseURL: api.defaults.baseURL,
-      timeout: api.defaults.timeout,
-      headers: api.defaults.headers,
+    // Get guest credentials
+    const response = await api.post("/api/guest", null, {
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
 
-    const response = await api.post("/api/guest");
-    console.log("Axios response status:", response.status);
-    console.log("Axios response data:", response.data);
-
-    if (response.status >= 400) {
-      console.error("Guest login failed with status:", response.status);
+    if (response.status >= 400 || !response.data) {
+      console.error(
+        "Guest credential generation failed:",
+        response.status,
+        response.data,
+      );
       throw new Error(
-        `Server responded with status ${response.status}: ${response.data}`,
+        response.data?.message ||
+          "Failed to generate guest credentials. Please try again later.",
       );
     }
 
@@ -28,37 +29,43 @@ const guestLogin = async (): Promise<ApiResponse<GuestLoginResponse>> => {
 
     // Now we need to login with the received credentials
     console.log("Attempting login with guest credentials");
-    const loginResponse = await api.post("/api/login", {
-      email: guestData.email,
-      password: guestData.password,
+    const loginResponse = await api.post("/api/guest", null, {
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
 
-    if (loginResponse.status >= 400) {
+    if (loginResponse.status >= 400 || !loginResponse.data) {
       console.error(
         "Login failed with guest credentials:",
         loginResponse.status,
+        loginResponse.data,
       );
-      throw new Error(`Login failed: ${loginResponse.data}`);
+      throw new Error(
+        loginResponse.data?.message || "Failed to login with guest credentials",
+      );
     }
 
     console.log("Login response:", loginResponse.data);
 
     // Store the token from login response
-    if (loginResponse.data.token) {
-      await setAuthToken(loginResponse.data.token);
+    const token = loginResponse.data?.token;
+    if (token) {
+      await setAuthToken(token);
       console.log("Token stored successfully");
     } else {
       console.warn("No token received in login response");
+      throw new Error("No authentication token received from server");
     }
 
     // Return in the expected ApiResponse format
     return {
       data: loginResponse.data,
-      message: guestData.message,
+      message: guestData.message || "Guest login successful",
       status: loginResponse.status,
     };
   } catch (error) {
-    console.error("Guest login axios error:", {
+    console.error("Guest login error:", {
       error,
       message: error instanceof Error ? error.message : "Unknown error",
     });

@@ -73,7 +73,7 @@ export default function DebtManagerScreen() {
           useNativeDriver: true,
         }),
       ]).start();
-    }, 2000);
+    }, 0);
 
     return () => {
       clearTimeout(timer);
@@ -95,9 +95,7 @@ export default function DebtManagerScreen() {
   const closedLoans = debts.filter(
     (debt) => Number(debt.remaining_balance) === 0,
   );
-  console.log("Open Loans: ", JSON.stringify(openLoans, null, 2));
-  console.log("Closed Loans: ", JSON.stringify(closedLoans, null, 2)); // Component code continues...
-  // Loading state handled in the content section
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar
