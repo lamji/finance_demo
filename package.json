@@ -53,7 +53,8 @@
     "yup": "^1.6.1",
     "expo-network": "~7.1.5",
     "expo-background-fetch": "~13.1.5",
-    "expo-task-manager": "~13.1.5"
+    "expo-task-manager": "~13.1.5",
+    "expo-linear-gradient": "~14.1.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

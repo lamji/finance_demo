@@ -1,12 +1,13 @@
 import { IconSymbol } from "@/components/ui/IconSymbol";
+import { ACCOUNT_FEATURES } from "@/helper/acountFeatures";
 import useHeaderTheme from "@/hooks/useHeaderTheme";
 import { RootState } from "@/store";
 import { logout } from "@/store/features/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert } from "react-native";
-import { ACCOUNT_FEATURES } from "@/helper/acountFeatures";
 
 type IconName = Parameters<typeof IconSymbol>[0]["name"];
 type BackupFrequency = "daily" | "weekly" | "monthly" | null;
@@ -139,8 +140,26 @@ export default function useViewModel() {
       title: "Logout",
       icon: "rectangle.portrait.and.arrow.right",
       onPress: () => {
-        dispatch(logout());
-        router.replace("/login");
+        Alert.alert("Logout", "Are you sure you want to logout?", [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Logout",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                await dispatch(logout());
+                await AsyncStorage.removeItem("userToken");
+                await AsyncStorage.removeItem("userData");
+                router.replace("/login");
+              } catch (error) {
+                console.error("Error during logout:", error);
+              }
+            },
+          },
+        ]);
       },
       color: "#FF3B30",
     },

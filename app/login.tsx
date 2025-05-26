@@ -5,6 +5,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { useGuestLogin } from "@/services/mutation/useGuestLogin";
 import { loginSuccess } from "@/store/features/authSlice";
 import { useAppDispatch } from "@/store/hooks";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -31,17 +32,26 @@ export default function LoginScreen() {
 
   const handleGuestLogin = () => {
     guestLoginMutation(undefined, {
-      onSuccess: (response) => {
-        const { user } = response.data;
-        dispatch(
-          loginSuccess({
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-          }),
-        );
-        router.replace("/(tabs)");
+      onSuccess: async (response) => {
+        const { user, token } = response.data; // Assuming your API returns a token
+        try {
+          // Store token and user data
+          await AsyncStorage.setItem("userToken", token);
+          await AsyncStorage.setItem("userData", JSON.stringify(user));
+
+          dispatch(
+            loginSuccess({
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              role: user.role,
+            }),
+          );
+          router.replace("/(tabs)");
+        } catch (error) {
+          console.error("Error storing auth data:", error);
+          setError("Failed to save login information");
+        }
       },
       onError: (error: Error) => {
         setError(error?.message || "Guest login failed");
@@ -49,25 +59,35 @@ export default function LoginScreen() {
     });
   };
 
-  const handleLogin = () => {
-    // In a real app, you would validate credentials against a backend
+  const handleLogin = async () => {
     if (email && password) {
       setIsLoading(true);
       setError("");
 
-      // Simulate API call with timeout
-      setTimeout(() => {
-        // Simulating a successful login
-        dispatch(
-          loginSuccess({
-            id: "1",
-            email: email,
-            name: "John Doe", // In a real app, this would come from the backend
-          }),
-        );
+      try {
+        // In real app, make API call here
+        // const response = await loginApi({ email, password });
+
+        // Simulate API response
+        const mockToken = "mock-jwt-token";
+        const mockUser = {
+          id: "1",
+          email: email,
+          name: "John Doe",
+        };
+
+        // Store token and user data
+        await AsyncStorage.setItem("userToken", mockToken);
+        await AsyncStorage.setItem("userData", JSON.stringify(mockUser));
+
+        dispatch(loginSuccess(mockUser));
         setIsLoading(false);
         router.replace("/(tabs)");
-      }, 2000); // 2 seconds timeout
+      } catch (error) {
+        console.error("Login error:", error);
+        setError("Login failed");
+        setIsLoading(false);
+      }
     } else {
       setError("Please enter both email and password");
     }

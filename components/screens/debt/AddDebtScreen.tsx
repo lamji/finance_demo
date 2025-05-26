@@ -4,6 +4,7 @@ import { BottomSheetCalendar } from "@/components/BottomSheetCalendar";
 import { ThemedText } from "@/components/ThemedText";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
+import { formatCurrencyForDisplay } from "@/helper";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import useHeaderTheme from "@/hooks/useHeaderTheme";
 import { addDebt } from "@/store/features/debtSlice";
@@ -109,23 +110,6 @@ export default function AddDebtScreen() {
   const [showStartDateCalendar, setShowStartDateCalendar] = useState(false);
   const [showDueDateCalendar, setShowDueDateCalendar] = useState(false);
   // Helper functions for currency formatting
-  const formatCurrencyForDisplay = (value: string) => {
-    if (!value) return "";
-
-    // Remove any non-numeric characters except decimal point
-    const cleanValue = value.replace(/[^\d.]/g, "");
-
-    if (!cleanValue) return "";
-
-    const numericValue = parseFloat(cleanValue);
-    if (isNaN(numericValue)) return cleanValue;
-
-    // Format with commas but without currency symbol for input display
-    return numericValue.toLocaleString("en-PH", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
-  };
 
   const handleCurrencyChange = (
     field: string,

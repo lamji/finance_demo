@@ -22,6 +22,12 @@ export interface GuestLoginResponse {
   };
 }
 
+// Payment Types
+export interface PaymentMutationParams {
+  debtId: string;
+  paymentIndex: number;
+}
+
 // Error Types
 export interface ApiError {
   message: string;

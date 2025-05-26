@@ -19,12 +19,17 @@ interface DebtState {
   debts: Debt[];
   loading: boolean;
   error: string | null;
+  editingDebt: {
+    id: string;
+    type: "for_update";
+  } | null;
 }
 
 const initialState: DebtState = {
   debts: [],
   loading: false,
   error: null,
+  editingDebt: null,
 };
 
 const debtSlice = createSlice({
@@ -51,9 +56,25 @@ const debtSlice = createSlice({
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
     },
+    setEditingDebt: (
+      state,
+      action: PayloadAction<{ id: string; type: "for_update" }>,
+    ) => {
+      state.editingDebt = action.payload;
+    },
+    clearEditingDebt: (state) => {
+      state.editingDebt = null;
+    },
   },
 });
 
-export const { addDebt, updateDebt, deleteDebt, setLoading, setError } =
-  debtSlice.actions;
+export const {
+  addDebt,
+  updateDebt,
+  deleteDebt,
+  setLoading,
+  setError,
+  setEditingDebt,
+  clearEditingDebt,
+} = debtSlice.actions;
 export default debtSlice.reducer;

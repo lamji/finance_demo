@@ -1,10 +1,10 @@
 /** @format */
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   ActivityIndicator,
   Animated,
-  ScrollView,
+  FlatList,
   StatusBar,
   StyleSheet,
   TouchableOpacity,
@@ -17,83 +17,34 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import useHeaderTheme from "@/hooks/useHeaderTheme";
 import { deleteDebt } from "@/store/features/debtSlice";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { router } from "expo-router";
 import { SwipeableDebtItem } from "./SwipeableDebtItem";
+import useViewModel from "./useViewModel";
 
 export default function DebtManagerScreen() {
-  const { safeAreaBackground } = useHeaderTheme();
-  const theme = useColorScheme() ?? "light";
-  const tintColor = Colors[theme].tint;
-  const dispatch = useAppDispatch();
-  const debts = useAppSelector((state) => state.debt.debts);
-  // Animation states
-  const [isLoading, setIsLoading] = useState(true);
-  const [fadeAnim] = useState(new Animated.Value(0));
-  const [scaleAnim] = useState(new Animated.Value(0.8));
-  const [pulseValue] = useState(new Animated.Value(1)); // Handle animations and loading
-  useEffect(() => {
-    // Loading animations
-    const pulseAnimation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseValue, {
-          toValue: 1.2,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseValue, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
+  const {
+    safeAreaBackground,
+    theme,
+    tintColor,
+    dispatch,
+    fadeAnim,
+    scaleAnim,
+    pulseValue,
+    calculateProgress,
+    openLoans,
+    closedLoans,
+    fetchLoading,
+  } = useViewModel();
 
-    pulseAnimation.start();
-
-    // Simulate loading delay
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-      pulseAnimation.stop();
-
-      // Start entrance animations
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          tension: 50,
-          friction: 7,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, 0);
-
-    return () => {
-      clearTimeout(timer);
-      pulseAnimation.stop();
-    };
-  }, [fadeAnim, scaleAnim, pulseValue]);
-
-  // Calculate progress percentage based on paid amount vs total debt
-  const calculateProgress = (debt: any) => {
-    const totalDebt = Number(debt.totalDebt);
-    if (debt.total_paid !== undefined && totalDebt > 0) {
-      const progress = (Number(debt.total_paid) / totalDebt) * 100;
-      return Math.min(Math.round(progress), 100);
-    }
-    return 0;
-  };
-
-  const openLoans = debts.filter((debt) => Number(debt.remaining_balance) > 0);
-  const closedLoans = debts.filter(
-    (debt) => Number(debt.remaining_balance) === 0,
+  const renderItem = ({ item: debt }: { item: any }) => (
+    <SwipeableDebtItem
+      key={debt._id}
+      debt={debt}
+      onDelete={(id) => dispatch(deleteDebt(id))}
+      tintColor={tintColor}
+      calculateProgress={calculateProgress}
+    />
   );
 
   return (
@@ -114,147 +65,138 @@ export default function DebtManagerScreen() {
             },
           ]}
         >
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.headerContainer}>
-              <View style={styles.cardsContainer}>
-                <ThemedView
+          <View style={styles.headerContainer}>
+            <View style={styles.cardsContainer}>
+              <ThemedView
+                style={[
+                  styles.card,
+                  {
+                    backgroundColor: "#4CAF50",
+                    borderColor: "#388E3C",
+                    borderWidth: 1,
+                  },
+                ]}
+              >
+                <View
                   style={[
-                    styles.card,
-                    {
-                      backgroundColor: "#4CAF50",
-                      borderColor: "#388E3C",
-                      borderWidth: 1,
-                    },
+                    styles.cardIconBackground,
+                    { backgroundColor: "#388E3C" },
                   ]}
-                >
-                  <View
-                    style={[
-                      styles.cardIconBackground,
-                      { backgroundColor: "#388E3C" },
-                    ]}
-                  />
-                  <ThemedText style={[styles.cardLabel, { color: "#E8F5E9" }]}>
-                    Active Loans
+                />
+                <ThemedText style={[styles.cardLabel, { color: "#E8F5E9" }]}>
+                  Active Loans
+                </ThemedText>
+                <ThemedText style={[styles.cardValue, { color: "white" }]}>
+                  {openLoans.length}
+                </ThemedText>
+                <View style={styles.cardDetails}>
+                  <ThemedText
+                    style={[styles.cardCaption, { color: "#E8F5E9" }]}
+                  >
+                    Ongoing
                   </ThemedText>
-                  <ThemedText style={[styles.cardValue, { color: "white" }]}>
-                    {openLoans.length}
-                  </ThemedText>
-                  <View style={styles.cardDetails}>
-                    <ThemedText
-                      style={[styles.cardCaption, { color: "#E8F5E9" }]}
-                    >
-                      Ongoing
-                    </ThemedText>
-                  </View>
-                  <IconSymbol
-                    name="creditcard.fill"
-                    size={32}
-                    color="white"
-                    style={styles.cardIcon}
-                  />
-                </ThemedView>
-                <ThemedView
-                  style={[
-                    styles.card,
-                    {
-                      backgroundColor: "#9E9E9E",
-                      borderColor: "#757575",
-                      borderWidth: 1,
-                    },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.cardIconBackground,
-                      { backgroundColor: "#757575" },
-                    ]}
-                  />
-                  <ThemedText style={[styles.cardLabel, { color: "#F5F5F5" }]}>
-                    Closed Loans
-                  </ThemedText>
-                  <ThemedText style={[styles.cardValue, { color: "white" }]}>
-                    {closedLoans.length}
-                  </ThemedText>
-                  <View style={styles.cardDetails}>
-                    <ThemedText
-                      style={[styles.cardCaption, { color: "#F5F5F5" }]}
-                    >
-                      Paid off
-                    </ThemedText>
-                  </View>
-                  <IconSymbol
-                    name="checkmark.seal.fill"
-                    size={32}
-                    color="white"
-                    style={styles.cardIcon}
-                  />
-                </ThemedView>
-              </View>
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <View>
-                    <ThemedText type="subtitle" style={{ color: "white" }}>
-                      Active Debts
-                    </ThemedText>
-                    <ThemedText style={styles.sectionSubtitle}>
-                      Your current loan obligations
-                    </ThemedText>
-                  </View>
-                  <View style={styles.buttonGroup}>
-                    <TouchableOpacity
-                      style={[styles.addButton, { backgroundColor: tintColor }]}
-                      onPress={() => router.push("/debts/add")}
-                    >
-                      <IconSymbol
-                        name="plus.circle.fill"
-                        size={20}
-                        color="#fff"
-                      />
-                      <ThemedText style={styles.addButtonText}>
-                        Add Debt
-                      </ThemedText>
-                    </TouchableOpacity>
-                  </View>
                 </View>
-              </View>
+                <IconSymbol
+                  name="creditcard.fill"
+                  size={32}
+                  color="white"
+                  style={styles.cardIcon}
+                />
+              </ThemedView>
+              <ThemedView
+                style={[
+                  styles.card,
+                  {
+                    backgroundColor: "#9E9E9E",
+                    borderColor: "#757575",
+                    borderWidth: 1,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.cardIconBackground,
+                    { backgroundColor: "#757575" },
+                  ]}
+                />
+                <ThemedText style={[styles.cardLabel, { color: "#F5F5F5" }]}>
+                  Closed Loans
+                </ThemedText>
+                <ThemedText style={[styles.cardValue, { color: "white" }]}>
+                  {closedLoans.length}
+                </ThemedText>
+                <View style={styles.cardDetails}>
+                  <ThemedText
+                    style={[styles.cardCaption, { color: "#F5F5F5" }]}
+                  >
+                    Paid off
+                  </ThemedText>
+                </View>
+                <IconSymbol
+                  name="checkmark.seal.fill"
+                  size={32}
+                  color="white"
+                  style={styles.cardIcon}
+                />
+              </ThemedView>
             </View>
-            <View style={styles.sectionListing}>
-              {isLoading ? (
-                <View style={styles.loadingContent}>
-                  <Animated.View style={{ transform: [{ scale: pulseValue }] }}>
-                    <ActivityIndicator size="large" color={tintColor} />
-                  </Animated.View>
-                  <ThemedText style={styles.loadingText}>
-                    Loading debts...
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <View>
+                  <ThemedText type="subtitle" style={{ color: "white" }}>
+                    Active Debts
+                  </ThemedText>
+                  <ThemedText style={styles.sectionSubtitle}>
+                    Your current loan obligations
                   </ThemedText>
                 </View>
-              ) : openLoans.length > 0 ? (
-                <View style={styles.debtsList}>
-                  {openLoans.map((debt) => (
-                    <SwipeableDebtItem
-                      key={debt.id}
-                      debt={debt}
-                      onDelete={(id) => dispatch(deleteDebt(id))}
-                      tintColor={tintColor}
-                      calculateProgress={calculateProgress}
+                <View style={styles.buttonGroup}>
+                  <TouchableOpacity
+                    style={[styles.addButton, { backgroundColor: tintColor }]}
+                    onPress={() => router.push("/debts/add")}
+                  >
+                    <IconSymbol
+                      name="plus.circle.fill"
+                      size={20}
+                      color="#fff"
                     />
-                  ))}
+                    <ThemedText style={styles.addButtonText}>
+                      Add Debt
+                    </ThemedText>
+                  </TouchableOpacity>
                 </View>
-              ) : (
-                <ThemedView style={styles.emptyState}>
-                  <ThemedText style={styles.emptyStateText}>
-                    No active debts
-                  </ThemedText>
-                  <ThemedText style={styles.emptyStateSubtext}>
-                    Add your first debt to start tracking
-                  </ThemedText>
-                </ThemedView>
-              )}
+              </View>
             </View>
-          </ScrollView>
+          </View>
+          <View style={styles.sectionListing}>
+            {fetchLoading ? (
+              <View style={styles.loadingContent}>
+                <Animated.View style={{ transform: [{ scale: pulseValue }] }}>
+                  <ActivityIndicator size="large" color={tintColor} />
+                </Animated.View>
+                <ThemedText style={styles.loadingText}>
+                  Loading debts...
+                </ThemedText>
+              </View>
+            ) : openLoans.length > 0 ? (
+              <FlatList
+                data={openLoans}
+                renderItem={renderItem}
+                keyExtractor={(item) => item._id}
+                contentContainerStyle={styles.debtsList}
+                showsVerticalScrollIndicator={false}
+              />
+            ) : (
+              <ThemedView style={styles.emptyState}>
+                <ThemedText style={styles.emptyStateText}>
+                  No active debts
+                </ThemedText>
+                <ThemedText style={styles.emptyStateSubtext}>
+                  Add your first debt to start tracking
+                </ThemedText>
+              </ThemedView>
+            )}
+          </View>
         </Animated.View>
       </SafeAreaView>
     </GestureHandlerRootView>
@@ -370,7 +312,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   debtsList: {
-    gap: 12,
+    paddingBottom: 32,
   },
   debtItem: {
     padding: 16,

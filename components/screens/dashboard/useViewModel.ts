@@ -1,7 +1,7 @@
 import useHeaderTheme from "@/hooks/useHeaderTheme";
 import { router } from "expo-router";
-import { Alert, Animated } from "react-native";
 import { useEffect, useRef, useState } from "react";
+import { Alert, Animated } from "react-native";
 import { useSelector } from "react-redux";
 // Debug variable - change this to test different subscription types
 const DEBUG_SUBSCRIPTION_TYPE: SubscriptionType = "guest"; // Change to "guest" | "one-time" | "monthly"
@@ -48,7 +48,7 @@ export interface WalletStats {
 
 export default function useViewModel() {
   const { theme, tintColor, headerBgColors } = useHeaderTheme();
-  const user = useSelector((state) => state.auth.user);
+  const user = useSelector((state: any) => state.auth.user);
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [lastBackup, setLastBackup] = useState<string | null>(null);
   const [timeSinceBackup, setTimeSinceBackup] = useState<number>(0);
@@ -58,7 +58,7 @@ export default function useViewModel() {
   const subscriptionType: SubscriptionType = DEBUG_SUBSCRIPTION_TYPE;
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (lastBackup) {
       // Update immediately
       const updateTime = () => {
@@ -134,7 +134,7 @@ export default function useViewModel() {
           {
             text: "Upgrade Now",
             onPress: () => {
-              router.push("/profile/upgrade");
+              // router.push("/profile/upgrade");
             },
           },
         ],

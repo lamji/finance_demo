@@ -5,19 +5,35 @@
  * @returns Formatted currency string (e.g., "₱1,234.56")
  */
 export const formatPHPCurrency = (
-  amount: number,
+  amount: number | string | undefined | null,
   includeSymbol: boolean = true,
 ): string => {
-  // Handle edge cases
-  if (isNaN(amount)) return includeSymbol ? "₱0.00" : "0.00";
+  // Handle null, undefined, or empty values
+  if (amount === null || amount === undefined || amount === "") {
+    return includeSymbol ? "₱0.00" : "0.00";
+  }
+
+  // Convert string to number if needed
+  const numericAmount =
+    typeof amount === "string"
+      ? parseFloat(amount.replace(/[^\d.-]/g, ""))
+      : amount;
+
+  // Handle NaN and invalid numbers
+  if (isNaN(numericAmount)) {
+    return includeSymbol ? "₱0.00" : "0.00";
+  }
 
   // Format with 2 decimal places and comma separators
-  const formatted = amount.toLocaleString("en-PH", {
+  const formatted = Math.abs(numericAmount).toLocaleString("en-PH", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 
-  return includeSymbol ? `₱${formatted}` : formatted;
+  // Add negative sign if needed
+  const result = numericAmount < 0 ? `-${formatted}` : formatted;
+
+  return includeSymbol ? `₱${result}` : result;
 };
 
 /**
@@ -90,4 +106,28 @@ export const isValidPHPCurrency = (currencyString: string): boolean => {
  */
 export const formatCurrencyInput = (amount: number): string => {
   return formatPHPCurrency(amount, false);
+};
+
+export const formatCurrencyForDisplay = (value: number | string): string => {
+  if (value === undefined || value === null) return "";
+
+  // If value is a number, convert it directly
+  if (typeof value === "number") {
+    return value.toLocaleString("en-PH", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+  }
+
+  // Handle string values
+  const cleanValue = value.replace(/[^\d.]/g, "");
+  if (!cleanValue) return "";
+
+  const numericValue = parseFloat(cleanValue);
+  if (isNaN(numericValue)) return "";
+
+  return numericValue.toLocaleString("en-PH", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
 };
