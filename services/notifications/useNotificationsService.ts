@@ -13,6 +13,13 @@ export interface Notification {
   isSelected?: boolean;
 }
 
+export interface Transaction {
+  amount: number;
+  type: "payment" | "extra";
+  date: string;
+  _id: string;
+}
+
 export function useNotificationsService() {
   const convertPaymentToNotification = (
     payment: MonthlyPayment,
@@ -61,44 +68,49 @@ export function useNotificationsService() {
     return null;
   };
 
+  const processTransactionNotifications = (debt: Debt): Notification[] => {
+    const notifications: Notification[] = [];
+
+    // Only process transactions from the last 7 days
+    const now = new Date();
+    const recentTransactions =
+      debt.transactions?.filter((transaction) => {
+        const transactionDate = new Date(transaction.date);
+        return isAfter(transactionDate, addDays(now, -7));
+      }) || [];
+
+    recentTransactions.forEach((transaction) => {
+      notifications.push({
+        id: `transaction-${transaction._id}`,
+        title: `New ${
+          transaction.type === "payment" ? "Payment" : "Extra Payment"
+        } - ${debt.bank}`,
+        message: `A ${
+          transaction.type === "payment" ? "payment" : "extra payment"
+        } of ${transaction.amount} was recorded for your ${debt.bank} loan.`,
+        timestamp: transaction.date,
+        isRead: false,
+        type: "payment",
+      });
+    });
+
+    return notifications;
+  };
+
   const processDebtNotifications = (debt: Debt): Notification[] => {
     const notifications: Notification[] = [];
 
-    // 1. Map actual monthly_payments to notifications
+    // 1. Process monthly payments notifications (existing)
     debt.monthly_payments.forEach((payment) => {
       const notif = convertPaymentToNotification(payment, debt);
       if (notif) notifications.push(notif);
     });
 
-    // 2. Upcoming auto-payment based on the next pending due in debt.monthly_payments
-    // const now = new Date();
-    // const pending = debt.monthly_payments
-    //   .filter((p) => p.status !== "paid")
-    //   .map((p) => ({ ...p, dueDate: parseISO(p.due_date) }))
-    //   .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+    // 2. Process transaction notifications (new)
+    const transactionNotifs = processTransactionNotifications(debt);
+    notifications.push(...transactionNotifs);
 
-    // if (pending.length > 0) {
-    //   const next = pending[0];
-    //   // If next due is within 7 days
-    //   if (
-    //     isAfter(next.dueDate, now) &&
-    //     isBefore(next.dueDate, addDays(now, 7))
-    //   ) {
-    //     notifications.push({
-    //       id: `next-payment-${debt._id}`,
-    //       title: "Upcoming Auto-Payment",
-    //       message: `Your next payment of ${next.amount} for ${debt.bank} loan is due on ${format(
-    //         next.dueDate,
-    //         "MMMM d, yyyy",
-    //       )}.`,
-    //       timestamp: next.dueDate.toISOString(),
-    //       isRead: false,
-    //       type: "payment",
-    //     });
-    //   }
-    // }
-
-    // 3. Milestones & completion (unchanged)
+    // 3. Process milestone notifications (existing)
     const remainingPercentage = (debt.remaining_balance / debt.totalDebt) * 100;
     if (remainingPercentage <= 25 && remainingPercentage > 0) {
       notifications.push({
@@ -125,15 +137,20 @@ export function useNotificationsService() {
 
   const generateAllNotifications = (debts: Debt[]): Notification[] => {
     let all: Notification[] = [];
+
+    // Collect all notifications from debts
     debts.forEach((d) => {
       all = all.concat(processDebtNotifications(d));
     });
-    all.sort(
-      (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-    );
-    // dispatch(setNotifications(all));
-    // console.log("Generated Notifications:", all);
+
+    // Sort notifications by timestamp, newest first
+    all.sort((a, b) => {
+      const dateA = new Date(a.timestamp);
+      const dateB = new Date(b.timestamp);
+      // Reverse the comparison to get descending order (newest first)
+      return dateB.getTime() - dateA.getTime();
+    });
+
     return all;
   };
 

@@ -22,7 +22,19 @@ export type IconSymbolName =
   | "bell.slash"
   | "clock"
   | "envelope"
-  | "lock";
+  | "lock"
+  | "calendar"
+  | "rectangle.portrait.and.arrow.right"
+  | "person.crop.circle.fill"
+  | "icloud.fill"
+  | "icloud.slash.fill"
+  | "person.2.fill"
+  | "person.fill"
+  | "xmark.circle.fill"
+  | "arrow.down.circle.fill"
+  | "arrow.up.circle.fill"
+  | "checkmark.seal.fill"
+  | "plus.circle.fill";
 
 type IconMapping = Record<
   IconSymbolName,
@@ -52,6 +64,18 @@ const MAPPING = {
   clock: "schedule",
   envelope: "email",
   lock: "lock",
+  calendar: "calendar-today", // Add this line
+  "rectangle.portrait.and.arrow.right": "logout", // Add this line - using "logout" as the Material equivalent
+  "person.crop.circle.fill": "account-circle",
+  "icloud.fill": "cloud",
+  "icloud.slash.fill": "cloud-off",
+  "person.2.fill": "people",
+  "person.fill": "person",
+  "xmark.circle.fill": "cancel",
+  "arrow.down.circle.fill": "arrow-circle-down",
+  "arrow.up.circle.fill": "arrow-circle-up",
+  "checkmark.seal.fill": "verified", // Using "verified" as Material equivalent
+  "plus.circle.fill": "add-circle", // Using "add-circle" as Material equivalent
 } as IconMapping;
 
 /**

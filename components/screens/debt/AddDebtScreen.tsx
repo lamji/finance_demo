@@ -5,15 +5,9 @@ import { ThemedText } from "@/components/ThemedText";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
 import { formatCurrencyForDisplay } from "@/helper";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import useHeaderTheme from "@/hooks/useHeaderTheme";
-import { addDebt, clearEditingDebt, updateDebt } from "@/store/features/debtSlice";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { nanoid } from "@reduxjs/toolkit";
 import { format } from "date-fns";
-import { router } from "expo-router";
 import { Formik } from "formik";
-import React, { useState } from "react";
+import React from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -24,7 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import * as Yup from "yup";
+import useViewModel, { validationSchema } from "./useViewModel";
 
 type TermType = "months" | "years";
 
@@ -38,169 +32,19 @@ interface DebtFormValues {
   dueDate: Date;
 }
 
-const validationSchema = Yup.object().shape({
-  bank: Yup.string()
-    .required("Bank/Institution is required")
-    .min(2, "Bank name must be at least 2 characters"),
-  totalDebt: Yup.string()
-    .required("Total debt is required")
-    .test("is-positive", "Amount must be greater than 0", function (value) {
-      const numValue = parseFloat(value || "0");
-      return numValue > 0;
-    }),
-  monthlyPayment: Yup.string()
-    .required("Monthly payment is required")
-    .test("is-positive", "Monthly payment must be positive", (value) => {
-      if (!value) return true; // Let Yup handle required validation
-      const num = Number(value.replace(/[^0-9.-]+/g, ""));
-      return !isNaN(num) && num > 0;
-    })
-    .test("is-valid-number", "Please enter a valid number", (value) => {
-      if (!value) return true; // Let Yup handle required validation
-      const num = Number(value.replace(/[^0-9.-]+/g, ""));
-      return !isNaN(num);
-    })
-    .test("sufficient-payment", function (value) {
-      if (!value || !this.parent.totalDebt || !this.parent.term) return true;
-
-      const monthlyPayment = Number(value.replace(/[^0-9.-]+/g, ""));
-      const totalDebt = Number(this.parent.totalDebt.replace(/[^0-9.-]+/g, ""));
-      const termLength = Number(this.parent.term);
-      const isYears = this.parent.termType === "years";
-      const numberOfMonths = isYears ? termLength * 12 : termLength;
-
-      const totalPayments = monthlyPayment * numberOfMonths;
-
-      if (totalPayments < totalDebt) {
-        const minMonthlyPayment = Math.ceil(totalDebt / numberOfMonths);
-        const minTermMonths = Math.ceil(totalDebt / monthlyPayment);
-        const minTerm = isYears
-          ? Math.ceil((minTermMonths / 12) * 10) / 10 // Round to 1 decimal place for years
-          : minTermMonths;
-
-        return this.createError({
-          message:
-            `Total payments (₱${totalPayments.toLocaleString()}) must be at least equal to total debt (₱${totalDebt.toLocaleString()}). ` +
-            `Either increase monthly payment to at least ₱${minMonthlyPayment.toLocaleString()} ` +
-            `or increase term to at least ${minTerm} ${isYears ? "years" : "months"}.`,
-        });
-      }
-
-      return true;
-    }),
-  term: Yup.string()
-    .required("Term is required")
-    .matches(/^\d+$/, "Must be a number"),
-  termType: Yup.string()
-    .oneOf(["months", "years"], "Invalid term type")
-    .required("Term type is required"),
-  startDate: Yup.date()
-    .required("Start date is required")
-    .typeError("Invalid date"),
-  dueDate: Yup.date()
-    .required("Due date is required")
-    .min(Yup.ref("startDate"), "Due date must be after start date")
-    .typeError("Invalid date"),
-});
-
 export default function AddDebtScreen() {
-  const dispatch = useAppDispatch();
-  const colorScheme = useColorScheme() ?? "light";
-  const { safeAreaBackground, theme } = useHeaderTheme();
-  const [showStartDateCalendar, setShowStartDateCalendar] = useState(false);
-  const [showDueDateCalendar, setShowDueDateCalendar] = useState(false);
-  const { editingDebt } = useAppSelector((state) => state.debt);
-  const isEditMode = !!editingDebt;
-  // Helper functions for currency formatting
-
-  const handleCurrencyChange = (
-    field: string,
-    value: string,
-    setFieldValue: any,
-  ) => {
-    // Remove currency symbols, commas, and spaces for processing
-    const cleanValue = value.replace(/[₱,\s]/g, "");
-
-    // Only allow numbers and one decimal point
-    if (cleanValue === "" || /^\d*\.?\d{0,2}$/.test(cleanValue)) {
-      setFieldValue(field, cleanValue);
-    }
-  };
-
-  const initialValues: DebtFormValues = editingDebt
-    ? {
-        bank: editingDebt.bank || "",
-        totalDebt: editingDebt.totalDebt || "",
-        monthlyPayment: editingDebt.monthlyPayment || "",
-        term: editingDebt.term || "",
-        termType: editingDebt.termType || "months",
-        startDate: editingDebt.startDate ? new Date(editingDebt.startDate) : new Date(),
-        dueDate: editingDebt.dueDate ? new Date(editingDebt.dueDate) : new Date(),
-      }
-    : {
-        bank: "",
-        totalDebt: "",
-        monthlyPayment: "",
-        term: "",
-        termType: "months",
-        startDate: new Date(),
-        dueDate: new Date(),
-      };
-
-  const handleSubmit = (values: DebtFormValues) => {
-    if (isEditMode && editingDebt) {
-      // Update existing debt with all required fields
-      const debt: any = {
-        id: editingDebt.id,
-        bank: values.bank,
-        totalDebt: values.totalDebt,
-        monthlyPayment: values.monthlyPayment,
-        term: values.term,
-        termType: values.termType,
-        startDate: values.startDate.toISOString(),
-        dueDate: values.dueDate.toISOString(),
-        updatedAt: new Date().toISOString(),
-        // Preserve these values from the original debt
-        createdAt: editingDebt.createdAt || new Date().toISOString(),
-        remaining_balance: editingDebt.remaining_balance || 0,
-        total_paid: editingDebt.total_paid || 0,
-      };
-      dispatch(updateDebt(debt));
-    } else {
-      // Add new debt
-      dispatch(
-        addDebt({
-          id: nanoid(),
-          ...values,
-          startDate: values.startDate.toISOString(),
-          dueDate: values.dueDate.toISOString(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          remaining_balance: 0,
-          total_paid: 0,
-        }),
-      );
-    }
-    router.back();
-  };
-
-  // Clear editing debt when component unmounts
-  React.useEffect(() => {
-    return () => {
-      dispatch(clearEditingDebt());
-    };
-  }, [dispatch]);
+  const vm = useViewModel();
 
   return (
     <>
       <StatusBar
-        backgroundColor={safeAreaBackground}
-        barStyle={theme === "dark" ? "light-content" : "dark-content"}
+        backgroundColor={vm.safeAreaBackground}
+        barStyle={vm.theme === "dark" ? "light-content" : "dark-content"}
       />
       <Formik<DebtFormValues>
-        initialValues={initialValues}
+        initialValues={vm.initialValues}
         validationSchema={validationSchema}
-        onSubmit={handleSubmit}
+        onSubmit={vm.handleSubmit}
       >
         {({
           handleChange,
@@ -230,15 +74,15 @@ export default function AddDebtScreen() {
                         borderColor:
                           errors.bank && touched.bank
                             ? "red"
-                            : Colors[colorScheme].text,
-                        color: Colors[colorScheme].text,
+                            : Colors[vm.colorScheme].text,
+                        color: Colors[vm.colorScheme].text,
                       },
                     ]}
                     value={values.bank}
                     onChangeText={handleChange("bank")}
                     onBlur={() => setFieldTouched("bank")}
                     placeholder="Enter bank or institution name"
-                    placeholderTextColor={Colors[colorScheme].text + "80"}
+                    placeholderTextColor={Colors[vm.colorScheme].text + "80"}
                   />
                   {errors.bank && touched.bank && (
                     <ThemedText style={styles.errorText}>
@@ -255,7 +99,7 @@ export default function AddDebtScreen() {
                         borderColor:
                           errors.totalDebt && touched.totalDebt
                             ? "red"
-                            : Colors[colorScheme].text,
+                            : Colors[vm.colorScheme].text,
                       },
                     ]}
                   >
@@ -264,17 +108,21 @@ export default function AddDebtScreen() {
                       style={[
                         styles.currencyInput,
                         {
-                          color: Colors[colorScheme].text,
+                          color: Colors[vm.colorScheme].text,
                         },
                       ]}
                       value={formatCurrencyForDisplay(values.totalDebt)}
                       onChangeText={(text) =>
-                        handleCurrencyChange("totalDebt", text, setFieldValue)
+                        vm.handleCurrencyChange(
+                          "totalDebt",
+                          text,
+                          setFieldValue,
+                        )
                       }
                       onBlur={() => setFieldTouched("totalDebt")}
                       placeholder="0.00"
                       keyboardType="numeric"
-                      placeholderTextColor={Colors[colorScheme].text + "80"}
+                      placeholderTextColor={Colors[vm.colorScheme].text + "80"}
                     />
                   </View>
                   {errors.totalDebt && touched.totalDebt && (
@@ -292,7 +140,7 @@ export default function AddDebtScreen() {
                         borderColor:
                           errors.monthlyPayment && touched.monthlyPayment
                             ? "red"
-                            : Colors[colorScheme].text,
+                            : Colors[vm.colorScheme].text,
                       },
                     ]}
                   >
@@ -301,12 +149,12 @@ export default function AddDebtScreen() {
                       style={[
                         styles.currencyInput,
                         {
-                          color: Colors[colorScheme].text,
+                          color: Colors[vm.colorScheme].text,
                         },
                       ]}
                       value={formatCurrencyForDisplay(values.monthlyPayment)}
                       onChangeText={(text) =>
-                        handleCurrencyChange(
+                        vm.handleCurrencyChange(
                           "monthlyPayment",
                           text,
                           setFieldValue,
@@ -315,7 +163,7 @@ export default function AddDebtScreen() {
                       onBlur={() => setFieldTouched("monthlyPayment")}
                       placeholder="0.00"
                       keyboardType="numeric"
-                      placeholderTextColor={Colors[colorScheme].text + "80"}
+                      placeholderTextColor={Colors[vm.colorScheme].text + "80"}
                     />
                   </View>
                   {errors.monthlyPayment && touched.monthlyPayment && (
@@ -334,8 +182,8 @@ export default function AddDebtScreen() {
                           borderColor:
                             errors.term && touched.term
                               ? "red"
-                              : Colors[colorScheme].text,
-                          color: Colors[colorScheme].text,
+                              : Colors[vm.colorScheme].text,
+                          color: Colors[vm.colorScheme].text,
                         },
                       ]}
                       value={values.term}
@@ -343,7 +191,7 @@ export default function AddDebtScreen() {
                       onBlur={() => setFieldTouched("term")}
                       placeholder="Enter term"
                       keyboardType="numeric"
-                      placeholderTextColor={Colors[colorScheme].text + "80"}
+                      placeholderTextColor={Colors[vm.colorScheme].text + "80"}
                     />
                     <View style={styles.termTypeContainer}>
                       <TouchableOpacity
@@ -352,10 +200,10 @@ export default function AddDebtScreen() {
                           {
                             backgroundColor:
                               values.termType === "months"
-                                ? Colors[colorScheme].tint
+                                ? Colors[vm.colorScheme].tint
                                 : "transparent",
                           },
-                          { borderColor: Colors[colorScheme].text },
+                          { borderColor: Colors[vm.colorScheme].text },
                         ]}
                         onPress={() => setFieldValue("termType", "months")}
                       >
@@ -366,7 +214,7 @@ export default function AddDebtScreen() {
                               color:
                                 values.termType === "months"
                                   ? "#fff"
-                                  : Colors[colorScheme].text,
+                                  : Colors[vm.colorScheme].text,
                             },
                           ]}
                         >
@@ -379,10 +227,10 @@ export default function AddDebtScreen() {
                           {
                             backgroundColor:
                               values.termType === "years"
-                                ? Colors[colorScheme].tint
+                                ? Colors[vm.colorScheme].tint
                                 : "transparent",
                           },
-                          { borderColor: Colors[colorScheme].text },
+                          { borderColor: Colors[vm.colorScheme].text },
                         ]}
                         onPress={() => setFieldValue("termType", "years")}
                       >
@@ -393,7 +241,7 @@ export default function AddDebtScreen() {
                               color:
                                 values.termType === "years"
                                   ? "#fff"
-                                  : Colors[colorScheme].text,
+                                  : Colors[vm.colorScheme].text,
                             },
                           ]}
                         >
@@ -411,27 +259,27 @@ export default function AddDebtScreen() {
                 <View style={styles.inputGroup}>
                   <ThemedText style={styles.label}>Start Date</ThemedText>
                   <TouchableOpacity
-                    onPress={() => setShowStartDateCalendar(true)}
+                    onPress={() => vm.setShowStartDateCalendar(true)}
                     style={[
                       styles.dateButton,
                       {
                         borderColor:
                           errors.startDate && touched.startDate
                             ? "red"
-                            : Colors[colorScheme].text,
+                            : Colors[vm.colorScheme].text,
                       },
                     ]}
                   >
                     <IconSymbol
                       name="calendar"
                       size={20}
-                      color={Colors[colorScheme].text}
+                      color={Colors[vm.colorScheme].text}
                       style={styles.calendarIcon}
                     />
                     <ThemedText
                       style={[
                         styles.dateText,
-                        { color: Colors[colorScheme].text },
+                        { color: Colors[vm.colorScheme].text },
                       ]}
                     >
                       {format(values.startDate, "MMMM d, yyyy")}
@@ -446,27 +294,27 @@ export default function AddDebtScreen() {
                 <View style={styles.inputGroup}>
                   <ThemedText style={styles.label}>Due Date</ThemedText>
                   <TouchableOpacity
-                    onPress={() => setShowDueDateCalendar(true)}
+                    onPress={() => vm.setShowDueDateCalendar(true)}
                     style={[
                       styles.dateButton,
                       {
                         borderColor:
                           errors.dueDate && touched.dueDate
                             ? "red"
-                            : Colors[colorScheme].text,
+                            : Colors[vm.colorScheme].text,
                       },
                     ]}
                   >
                     <IconSymbol
                       name="calendar"
                       size={20}
-                      color={Colors[colorScheme].text}
+                      color={Colors[vm.colorScheme].text}
                       style={styles.calendarIcon}
                     />
                     <ThemedText
                       style={[
                         styles.dateText,
-                        { color: Colors[colorScheme].text },
+                        { color: Colors[vm.colorScheme].text },
                       ]}
                     >
                       {format(values.dueDate, "MMMM d, yyyy")}
@@ -485,33 +333,46 @@ export default function AddDebtScreen() {
               <TouchableOpacity
                 style={[
                   styles.submitButton,
-                  { backgroundColor: Colors[colorScheme].tint },
+                  { backgroundColor: Colors[vm.colorScheme].tint },
                 ]}
                 onPress={() => handleSubmit()}
               >
-                <ThemedText style={styles.submitButtonText}>
-                  Add Debt
-                </ThemedText>
+                {vm.addDebtStatus?.isLoading ||
+                vm.updateDebtStatus?.isLoading ? (
+                  <ThemedText style={styles.submitButtonText}>
+                    {vm.isEditMode
+                      ? vm.updateDebtStatus?.isLoading
+                        ? "Updating..."
+                        : "Update Debt"
+                      : vm.addDebtStatus?.isLoading
+                        ? "Adding..."
+                        : "Add Debt"}
+                  </ThemedText>
+                ) : (
+                  <ThemedText style={styles.submitButtonText}>
+                    {vm.isEditMode ? "Update Debt" : "Add Debt"}
+                  </ThemedText>
+                )}
               </TouchableOpacity>
             </View>
             <BottomSheetCalendar
-              isVisible={showStartDateCalendar}
-              onClose={() => setShowStartDateCalendar(false)}
+              isVisible={vm.showStartDateCalendar}
+              onClose={() => vm.setShowStartDateCalendar(false)}
               selectedDate={values.startDate}
               onDateSelect={(date) => {
                 setFieldValue("startDate", date);
-                setShowStartDateCalendar(false);
+                vm.setShowStartDateCalendar(false);
               }}
               minDate={new Date()}
               version="v2"
             />
             <BottomSheetCalendar
-              isVisible={showDueDateCalendar}
-              onClose={() => setShowDueDateCalendar(false)}
+              isVisible={vm.showDueDateCalendar}
+              onClose={() => vm.setShowDueDateCalendar(false)}
               selectedDate={values.dueDate}
               onDateSelect={(date) => {
                 setFieldValue("dueDate", date);
-                setShowDueDateCalendar(false);
+                vm.setShowDueDateCalendar(false);
               }}
               minDate={values.startDate}
               version="v2"

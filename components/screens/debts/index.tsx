@@ -185,6 +185,9 @@ export default function DebtManagerScreen() {
                 keyExtractor={(item) => item._id}
                 contentContainerStyle={styles.debtsList}
                 showsVerticalScrollIndicator={false}
+                ListFooterComponent={<View style={{ height: 20 }} />} // Add extra space at bottom
+                bounces={true} // Enable bounce effect
+                overScrollMode="never" // Prevent overscroll glow on Android
               />
             ) : (
               <ThemedView style={styles.emptyState}>
@@ -272,14 +275,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   sectionListing: {
-    minHeight: "100%",
+    flex: 1, // Change from minHeight: "100%" to flex: 1
     backgroundColor: "#fff",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     marginTop: -24,
     paddingTop: 24,
     paddingHorizontal: 16,
-    paddingBottom: 32,
   },
   section: {
     padding: 16,
@@ -312,7 +314,7 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   debtsList: {
-    paddingBottom: 32,
+    paddingBottom: 90, // Increase bottom padding to account for tab bar
   },
   debtItem: {
     padding: 16,

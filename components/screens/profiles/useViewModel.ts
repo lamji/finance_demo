@@ -1,5 +1,6 @@
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { ACCOUNT_FEATURES } from "@/helper/acountFeatures";
+import { useGetNotificationCount } from "@/hooks/useGetNitifcationCount";
 import useHeaderTheme from "@/hooks/useHeaderTheme";
 import { RootState } from "@/store";
 import { logout } from "@/store/features/authSlice";
@@ -37,6 +38,7 @@ export interface ProfileStats {
 }
 
 export default function useViewModel() {
+  const unreadCount = useGetNotificationCount();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state: RootState) => state.auth);
   const { tintColor, theme } = useHeaderTheme();
@@ -131,7 +133,7 @@ export default function useViewModel() {
       title: "Notifications",
       icon: "bell.fill",
       onPress: handleNotificationsPress,
-      badge: 3,
+      badge: unreadCount,
     },
     // {
     //   id: "backup",
@@ -201,5 +203,6 @@ export default function useViewModel() {
     handleDowngrade,
     handleOpenBackup,
     setFrequency,
+    unreadCount,
   };
 }

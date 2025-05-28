@@ -46,11 +46,17 @@ export default function NotificationScreen() {
   }, [vm.fadeAnim, vm.slideAnim]);
   // No unused functions or comments here
 
+  // Update the renderNotificationItem function to handle read state colors
   const renderNotificationItem = (
     notification: Notification,
     index: number,
     vm: ReturnType<typeof useViewModel>,
   ) => {
+    const titleColor = notification.isRead ? "#9E9E9E" : "#000000";
+    const iconColor = notification.isRead
+      ? "#9E9E9E"
+      : vm.getIconColorForType(notification.type);
+
     return (
       <Animated.View
         key={notification.id}
@@ -80,14 +86,16 @@ export default function NotificationScreen() {
               style={[
                 styles.iconContainer,
                 {
-                  backgroundColor: `${vm.getIconColorForType(notification.type)}20`,
+                  backgroundColor: notification.isRead
+                    ? "#F5F5F5"
+                    : `${vm.getIconColorForType(notification.type)}20`,
                 },
               ]}
             >
               <IconSymbol
                 name={vm.getIconForType(notification.type)}
                 size={24}
-                color={vm.getIconColorForType(notification.type)}
+                color={iconColor}
               />
             </View>
             <TouchableOpacity
@@ -106,7 +114,9 @@ export default function NotificationScreen() {
 
           <View style={styles.contentContainer}>
             <View style={styles.titleRow}>
-              <ThemedText style={styles.notificationTitle}>
+              <ThemedText
+                style={[styles.notificationTitle, { color: titleColor }]}
+              >
                 {notification.title}
               </ThemedText>
               {!notification.isRead && <View style={styles.unreadDot} />}
@@ -187,7 +197,7 @@ export default function NotificationScreen() {
         )}
 
         {/* 4. Delete (count) / Clear All Button */}
-        {vm.notifications.length > 0 && (
+        {/* {vm.notifications.length > 0 && (
           <TouchableOpacity
             onPress={vm.handleDeleteSelected}
             style={styles.actionButton}
@@ -207,7 +217,7 @@ export default function NotificationScreen() {
                 : "Clear All"}
             </ThemedText>
           </TouchableOpacity>
-        )}
+        )} */}
       </View>
       <ScrollView
         style={styles.scrollView}
@@ -379,7 +389,8 @@ const styles = StyleSheet.create({
     borderLeftColor: "#2196F3",
   },
   readItem: {
-    backgroundColor: "#FAFAFA", // Keep for read items
+    backgroundColor: "#FAFAFA",
+    opacity: 0.8, // Optional: slightly reduce opacity for read items
   },
   selectedItem: {
     backgroundColor: "#E3F2FD", // Light blue background for selected items
@@ -414,9 +425,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   notificationTitle: {
-    fontSize: 15, // Slightly smaller
+    fontSize: 15,
     fontWeight: "600",
-    flexShrink: 1, // Allow title to shrink if needed
+    flexShrink: 1,
+    // Remove any existing color property as we'll set it dynamically
   },
   unreadDot: {
     width: 8,

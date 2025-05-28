@@ -50,7 +50,6 @@ function AccountTypeCard({
   type,
   features,
   onUpgrade,
-  handleBackup,
   handleDowngrade,
   tintColor,
 }: {

@@ -28,6 +28,7 @@ export function useViewModel() {
   const [modalNotification, setModalNotification] =
     useState<Notification | null>(null);
   // Generate notifications from API and update Redux only if changed
+
   useEffect(() => {
     if (userData?.data?.debtsList) {
       const generated = generateAllNotifications(userData.data.debtsList);

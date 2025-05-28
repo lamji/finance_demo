@@ -8,10 +8,12 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { useGetNotificationCount } from "@/hooks/useGetNitifcationCount";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const unreadCount = useGetNotificationCount(); // Add this line
 
   return (
     <Tabs
@@ -116,9 +118,13 @@ export default function TabLayout() {
                 color={color}
                 style={[styles.icon, focused && styles.activeIcon]}
               />
-              <View style={[styles.badge, { backgroundColor: "#FF3B30" }]}>
-                <ThemedText style={styles.badgeText}>3</ThemedText>
-              </View>
+              {unreadCount > 0 && ( // Only show badge if there are unread notifications
+                <View style={[styles.badge, { backgroundColor: "#FF3B30" }]}>
+                  <ThemedText style={styles.badgeText}>
+                    {unreadCount}
+                  </ThemedText>
+                </View>
+              )}
             </View>
           ),
         }}
