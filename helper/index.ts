@@ -1,3 +1,5 @@
+import { Debt } from "@/services/query/usegetUser";
+
 /**
  * Formats a number as Philippine Peso currency
  * @param amount - The amount to format
@@ -130,4 +132,11 @@ export const formatCurrencyForDisplay = (value: number | string): string => {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
+};
+
+
+export const calculatePercentage = (debt: Debt) => {
+  const total = Number(debt.totalDebt);
+  const paid = Number(debt.total_paid) || 0;
+  return Math.min(Math.round((paid / total) * 100), 100);
 };

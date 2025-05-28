@@ -6,7 +6,6 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
@@ -14,6 +13,7 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 
 import { AuthGuard } from "@/components/AuthGuard";
+import { StatusAlert } from "@/components/ui/alert";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { persistor, store } from "../store";
 
@@ -38,6 +38,7 @@ export default function RootLayout() {
         >
           <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
+              <StatusAlert />
               <AuthGuard>
                 <Stack>
                   <Stack.Screen name="login" options={{ headerShown: false }} />
@@ -45,12 +46,17 @@ export default function RootLayout() {
                     name="(tabs)"
                     options={{ headerShown: false }}
                   />
+                  <Stack.Screen
+                    name="notifications"
+                    options={{ headerShown: false }}
+                  />
                   <Stack.Screen name="+not-found" />
                 </Stack>
               </AuthGuard>
             </PersistGate>
           </Provider>
-          <StatusBar style="auto" />
+          {/* We'll use specific StatusBar components in each screen for better control */}
+          {/* <StatusBar style="auto" /> */}
         </ThemeProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>

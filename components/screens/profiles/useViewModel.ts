@@ -121,12 +121,16 @@ export default function useViewModel() {
     );
   }, []);
 
+  const handleNotificationsPress = () => {
+    router.push("/notifications");
+  };
+
   const menuItems: MenuItem[] = [
     {
       id: "notifications",
       title: "Notifications",
       icon: "bell.fill",
-      onPress: () => console.log("Notifications pressed"),
+      onPress: handleNotificationsPress,
       badge: 3,
     },
     // {

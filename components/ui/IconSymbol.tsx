@@ -1,12 +1,33 @@
 // Fallback for using MaterialIcons on Android and web.
 
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SymbolWeight, SymbolViewProps } from 'expo-symbols';
-import { ComponentProps } from 'react';
-import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { SymbolWeight } from "expo-symbols";
+import { ComponentProps } from "react";
+import { OpaqueColorValue, type StyleProp, type TextStyle } from "react-native";
 
-type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
-type IconSymbolName = keyof typeof MAPPING;
+export type IconSymbolName =
+  | "house.fill"
+  | "paperplane.fill"
+  | "creditcard.fill"
+  | "person.circle.fill"
+  | "chevron.left.forwardslash.chevron.right"
+  | "chevron.right"
+  | "circle"
+  | "checkmark.circle.fill"
+  | "bell.fill"
+  | "gear"
+  | "xmark"
+  | "chevron.left"
+  | "trash"
+  | "bell.slash"
+  | "clock"
+  | "envelope"
+  | "lock";
+
+type IconMapping = Record<
+  IconSymbolName,
+  ComponentProps<typeof MaterialIcons>["name"]
+>;
 
 /**
  * Add your SF Symbols to Material Icons mappings here.
@@ -14,12 +35,23 @@ type IconSymbolName = keyof typeof MAPPING;
  * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
  */
 const MAPPING = {
-  'house.fill': 'dashboard',
-  'paperplane.fill': 'account-balance',
-  'creditcard.fill': 'payments',
-  'person.circle.fill': 'person',
-  'chevron.left.forwardslash.chevron.right': 'code',
-  'chevron.right': 'chevron-right',
+  "house.fill": "dashboard",
+  "paperplane.fill": "account-balance",
+  "creditcard.fill": "payments",
+  "person.circle.fill": "person",
+  "chevron.left.forwardslash.chevron.right": "code",
+  "chevron.right": "chevron-right",
+  circle: "radio-button-unchecked",
+  "checkmark.circle.fill": "check-circle",
+  "bell.fill": "notifications",
+  gear: "settings",
+  xmark: "close",
+  "chevron.left": "chevron-left",
+  trash: "delete",
+  "bell.slash": "notifications-off",
+  clock: "schedule",
+  envelope: "email",
+  lock: "lock",
 } as IconMapping;
 
 /**
@@ -39,5 +71,12 @@ export function IconSymbol({
   style?: StyleProp<TextStyle>;
   weight?: SymbolWeight;
 }) {
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
+  return (
+    <MaterialIcons
+      color={color}
+      size={size}
+      name={MAPPING[name]}
+      style={style}
+    />
+  );
 }

@@ -1,19 +1,19 @@
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { IconSymbol } from "@/components/ui/IconSymbol";
+import { ACCOUNT_FEATURES } from "@/helper/acountFeatures";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import React from "react";
 import {
-  View,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
   FlatList,
   Platform,
   SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { IconSymbol } from "@/components/ui/IconSymbol";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { ACCOUNT_FEATURES } from "@/helper/acountFeatures";
 import useViewModel, { PaymentHistoryItem } from "./useViewModel";
-import { useThemeColor } from "@/hooks/useThemeColor";
 
 export default function PaymentScreen() {
   const {
@@ -94,7 +94,7 @@ export default function PaymentScreen() {
               </View>
               <View style={styles.headerTextContainer}>
                 <ThemedText
-                  style={[styles.subscriptionTitle, { color: "white" }]}
+                  style={[{ color: "white" }]}
                 >
                   Guest Account
                 </ThemedText>
@@ -155,7 +155,7 @@ export default function PaymentScreen() {
               </View>
               <View style={styles.headerTextContainer}>
                 <ThemedText
-                  style={[styles.subscriptionTitle, { color: "white" }]}
+                  style={[ { color: "white" }]}
                 >
                   One-Time License
                 </ThemedText>
@@ -207,21 +207,21 @@ export default function PaymentScreen() {
                     Purchase Details
                   </ThemedText>
                 </View>
-                <View style={styles.purchaseDetails}>
+                <View >
                   <View style={styles.detailsGrid}>
                     <View style={styles.detailsCol}>
-                      <ThemedText style={styles.detailLabel}>
+                      <ThemedText style={[styles.detailLabel,{color:"white"}]}>
                         Purchase Date
                       </ThemedText>
-                      <ThemedText style={styles.detailValue}>
+                      <ThemedText style={[styles.detailValue,{color:"white"}]}>
                         {purchaseDetails.date}
                       </ThemedText>
                     </View>
                     <View style={styles.detailsCol}>
-                      <ThemedText style={styles.detailLabel}>
+                      <ThemedText style={[styles.detailLabel,{color:"white"}]}>
                         Amount Paid
                       </ThemedText>
-                      <ThemedText style={styles.detailValue}>
+                      <ThemedText style={[styles.detailValue,{color:"white"}]}>
                         {purchaseDetails.amount}
                       </ThemedText>
                     </View>
@@ -229,18 +229,18 @@ export default function PaymentScreen() {
                   <View style={styles.divider} />
                   <View style={styles.detailsGrid}>
                     <View style={styles.detailsCol}>
-                      <ThemedText style={styles.detailLabel}>
+                      <ThemedText style={[styles.detailLabel,{color:"white"}]}>
                         Payment Method
                       </ThemedText>
-                      <ThemedText style={styles.detailValue}>
+                      <ThemedText style={[styles.detailValue,{color:"white"}]}>
                         {purchaseDetails.paymentMethod}
                       </ThemedText>
                     </View>
                     <View style={styles.detailsCol}>
-                      <ThemedText style={styles.detailLabel}>
+                      <ThemedText style={ [styles.detailLabel,{color:"white"}]}>
                         Reference No
                       </ThemedText>
-                      <ThemedText style={styles.detailValue}>
+                      <ThemedText style={[styles.detailValue,{color:"white"}]}>
                         {purchaseDetails.referenceNo}
                       </ThemedText>
                     </View>
@@ -524,6 +524,24 @@ const styles = StyleSheet.create({
     marginBottom: 1,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: "rgba(0,0,0,0.05)",
+  },
+  nextPaymentAmount:{
+
+  },
+  subscriptionTitle:{
+
+  },
+  purchaseInfo:{
+
+  },
+  purchaseHeader:{
+
+  },
+  purchaseTitle:{
+    color:"white"
+  },
+  purchaseDetails:{
+color:"white"
   },
   historyIcon: {
     marginRight: 12,

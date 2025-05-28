@@ -19,10 +19,7 @@ interface DebtState {
   debts: Debt[];
   loading: boolean;
   error: string | null;
-  editingDebt: {
-    id: string;
-    type: "for_update";
-  } | null;
+  editingDebt: (Debt & { type: "for_update" }) | null;
 }
 
 const initialState: DebtState = {
@@ -58,9 +55,20 @@ const debtSlice = createSlice({
     },
     setEditingDebt: (
       state,
-      action: PayloadAction<{ id: string; type: "for_update" }>,
+      action: PayloadAction<{ id: string; type: "for_update" } | (Debt & { type: "for_update" })>,
     ) => {
-      state.editingDebt = action.payload;
+      if ('bank' in action.payload) {
+        // If full debt data is provided, use it
+        state.editingDebt = action.payload;
+      } else {
+        // If only id is provided, find the debt in the list
+        const debt = state.debts.find(d => d.id === action.payload.id);
+        if (debt) {
+          state.editingDebt = { ...debt, type: 'for_update' };
+        } else {
+          state.editingDebt = null;
+        }
+      }
     },
     clearEditingDebt: (state) => {
       state.editingDebt = null;

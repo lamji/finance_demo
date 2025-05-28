@@ -7,8 +7,8 @@ import { Colors } from "@/constants/Colors";
 import { formatCurrencyForDisplay } from "@/helper";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import useHeaderTheme from "@/hooks/useHeaderTheme";
-import { addDebt } from "@/store/features/debtSlice";
-import { useAppDispatch } from "@/store/hooks";
+import { addDebt, clearEditingDebt, updateDebt } from "@/store/features/debtSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { nanoid } from "@reduxjs/toolkit";
 import { format } from "date-fns";
 import { router } from "expo-router";
@@ -109,6 +109,8 @@ export default function AddDebtScreen() {
   const { safeAreaBackground, theme } = useHeaderTheme();
   const [showStartDateCalendar, setShowStartDateCalendar] = useState(false);
   const [showDueDateCalendar, setShowDueDateCalendar] = useState(false);
+  const { editingDebt } = useAppSelector((state) => state.debt);
+  const isEditMode = !!editingDebt;
   // Helper functions for currency formatting
 
   const handleCurrencyChange = (
@@ -125,31 +127,69 @@ export default function AddDebtScreen() {
     }
   };
 
-  const initialValues: DebtFormValues = {
-    bank: "",
-    totalDebt: "",
-    monthlyPayment: "",
-    term: "",
-    termType: "months",
-    startDate: new Date(),
-    dueDate: new Date(),
-  };
+  const initialValues: DebtFormValues = editingDebt
+    ? {
+        bank: editingDebt.bank || "",
+        totalDebt: editingDebt.totalDebt || "",
+        monthlyPayment: editingDebt.monthlyPayment || "",
+        term: editingDebt.term || "",
+        termType: editingDebt.termType || "months",
+        startDate: editingDebt.startDate ? new Date(editingDebt.startDate) : new Date(),
+        dueDate: editingDebt.dueDate ? new Date(editingDebt.dueDate) : new Date(),
+      }
+    : {
+        bank: "",
+        totalDebt: "",
+        monthlyPayment: "",
+        term: "",
+        termType: "months",
+        startDate: new Date(),
+        dueDate: new Date(),
+      };
 
   const handleSubmit = (values: DebtFormValues) => {
-    dispatch(
-      addDebt({
-        id: nanoid(),
-        ...values,
+    if (isEditMode && editingDebt) {
+      // Update existing debt with all required fields
+      const debt: any = {
+        id: editingDebt.id,
+        bank: values.bank,
+        totalDebt: values.totalDebt,
+        monthlyPayment: values.monthlyPayment,
+        term: values.term,
+        termType: values.termType,
         startDate: values.startDate.toISOString(),
         dueDate: values.dueDate.toISOString(),
-        createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        remaining_balance: 0,
-        total_paid: 0,
-      }),
-    );
+        // Preserve these values from the original debt
+        createdAt: editingDebt.createdAt || new Date().toISOString(),
+        remaining_balance: editingDebt.remaining_balance || 0,
+        total_paid: editingDebt.total_paid || 0,
+      };
+      dispatch(updateDebt(debt));
+    } else {
+      // Add new debt
+      dispatch(
+        addDebt({
+          id: nanoid(),
+          ...values,
+          startDate: values.startDate.toISOString(),
+          dueDate: values.dueDate.toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          remaining_balance: 0,
+          total_paid: 0,
+        }),
+      );
+    }
     router.back();
   };
+
+  // Clear editing debt when component unmounts
+  React.useEffect(() => {
+    return () => {
+      dispatch(clearEditingDebt());
+    };
+  }, [dispatch]);
 
   return (
     <>

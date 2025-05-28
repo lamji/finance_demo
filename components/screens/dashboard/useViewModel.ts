@@ -53,6 +53,7 @@ export default function useViewModel() {
   const [lastBackup, setLastBackup] = useState<string | null>(null);
   const [timeSinceBackup, setTimeSinceBackup] = useState<number>(0);
   const bounceAnim = useRef(new Animated.Value(1)).current;
+  const [notificationCount, setNotificationCount] = useState(3);
 
   // Uses the debug variable for easy testing
   const subscriptionType: SubscriptionType = DEBUG_SUBSCRIPTION_TYPE;
@@ -240,6 +241,10 @@ export default function useViewModel() {
     userName: user?.name || "Guest",
     safeAreaBackground: headerBgColors[theme],
   };
+  // Function to navigate to notifications screen
+  const handleNotificationsPress = () => {
+    router.push("/notifications");
+  };
 
   return {
     theme,
@@ -255,5 +260,7 @@ export default function useViewModel() {
     isBackingUp,
     bounceAnim,
     progressPercentage,
+    notificationCount,
+    handleNotificationsPress,
   };
 }

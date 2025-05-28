@@ -1,13 +1,13 @@
 /** @format */
 
 import {
+  Animated,
   Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
-  Animated,
 } from "react-native";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -15,8 +15,8 @@ import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { formatPHPCurrency } from "@/helper";
 import useViewModel, {
-  formatTimeSinceBackup,
   ActivityItem as ActivityItemType,
+  formatTimeSinceBackup,
 } from "./useViewModel";
 
 export default function DashboardScreen() {

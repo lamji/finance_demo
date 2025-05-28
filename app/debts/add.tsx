@@ -1,5 +1,5 @@
-import { Stack } from 'expo-router';
 import AddDebtScreen from '@/components/screens/debt/AddDebtScreen';
+import { Stack } from 'expo-router';
 
 export default function AddDebt() {
   return (

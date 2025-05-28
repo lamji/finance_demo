@@ -1,19 +1,23 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import { persistReducer, persistStore } from 'redux-persist';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import { persistReducer, persistStore } from "redux-persist";
 
-import authReducer from './features/authSlice';
-import debtReducer from './features/debtSlice';
+import authReducer from "./features/authSlice";
+import debtReducer from "./features/debtSlice";
+import notificationsReducer from "./features/notificationSlice";
+import alertReducer from "./features/sliceAlert";
 
 const persistConfig = {
-  key: 'root',
+  key: "root",
   storage: AsyncStorage,
-  whitelist: ['debt', 'auth'], // Persist both debt and auth reducers
+  whitelist: ["debt", "auth", "notifications"], // Persist both debt and auth reducers
 };
 
 const rootReducer = combineReducers({
   debt: debtReducer,
   auth: authReducer,
+  alert: alertReducer,
+  notifications: notificationsReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -23,7 +27,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+        ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
       },
     }),
 });
