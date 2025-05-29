@@ -1,9 +1,5 @@
 import { IconSymbolName } from "@/components/ui/IconSymbol";
-import {
-  Notification,
-  useNotificationsService,
-} from "@/services/notifications/useNotificationsService";
-import { useGetUser } from "@/services/query/usegetUser";
+import { Notification } from "@/services/notifications/useNotificationsService";
 
 import {
   markAllAsRead,
@@ -11,15 +7,13 @@ import {
   setNotifications,
 } from "@/store/features/notificationSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { isEqual } from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated } from "react-native";
 
 export function useViewModel() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
-  const { data: userData } = useGetUser();
-  const { generateAllNotifications } = useNotificationsService();
+
   const dispatch = useAppDispatch();
   const notifications = useAppSelector((state) => state.notifications);
 
@@ -29,26 +23,30 @@ export function useViewModel() {
     useState<Notification | null>(null);
   // Generate notifications from API and update Redux only if changed
 
-  useEffect(() => {
-    if (userData?.data?.debtsList) {
-      const generated = generateAllNotifications(userData.data.debtsList);
-      const shouldUpdate = !isEqual(
-        generated.map((g) => ({ ...g, isRead: false })),
-        notifications.map((n) => ({ ...n, isRead: false })),
-      );
-      if (shouldUpdate) {
-        // Preserve read states when updating
-        const updatedNotifications = generated.map((newNotif) => {
-          const existingNotif = notifications.find((n) => n.id === newNotif.id);
-          return existingNotif
-            ? { ...newNotif, isRead: existingNotif.isRead }
-            : newNotif;
-        });
-        dispatch(setNotifications(updatedNotifications));
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userData?.data?.debtsList]);
+  // useEffect(() => {
+  //   if (userData?.data?.debtsList) {
+  //     const generated = generateAllNotifications(userData.data.debtsList);
+  //     const shouldUpdate = !isEqual(
+  //       generated.map((g) => ({ ...g, isRead: false })),
+  //       notifications.map((n) => ({ ...n, isRead: false })),
+  //     );
+  //     if (shouldUpdate) {
+  //       // Preserve read states when updating
+  //       const updatedNotifications = generated.map((newNotif) => {
+  //         const existingNotif = notifications.find((n) => n.id === newNotif.id);
+  //         return existingNotif
+  //           ? { ...newNotif, isRead: existingNotif.isRead }
+  //           : newNotif;
+  //       });
+  //       dispatch(setNotifications(updatedNotifications));
+  //     }
+  //   }
+  // }, [
+  //   userData?.data?.debtsList,
+  //   generateAllNotifications,
+  //   notifications,
+  //   dispatch,
+  // ]); // Fix dependency array
 
   // Animation effect
   useEffect(() => {

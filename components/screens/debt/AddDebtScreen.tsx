@@ -361,7 +361,7 @@ export default function AddDebtScreen() {
               selectedDate={values.startDate}
               onDateSelect={(date) => {
                 setFieldValue("startDate", date);
-                vm.setShowStartDateCalendar(false);
+                // vm.setShowStartDateCalendar(false);
               }}
               minDate={new Date()}
               version="v2"
@@ -372,7 +372,7 @@ export default function AddDebtScreen() {
               selectedDate={values.dueDate}
               onDateSelect={(date) => {
                 setFieldValue("dueDate", date);
-                vm.setShowDueDateCalendar(false);
+                // vm.setShowDueDateCalendar(false);
               }}
               minDate={values.startDate}
               version="v2"

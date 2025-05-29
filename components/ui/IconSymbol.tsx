@@ -34,7 +34,17 @@ export type IconSymbolName =
   | "arrow.down.circle.fill"
   | "arrow.up.circle.fill"
   | "checkmark.seal.fill"
-  | "plus.circle.fill";
+  | "plus.circle.fill"
+  | "cloud.fill"
+  | "arrow.down.left.circle.fill"
+  | "arrow.up.right.circle.fill"
+  | "doc.text.fill"
+  | "square.and.pencil"
+  | "list.bullet"
+  | "checkmark.circle"
+  | "exclamationmark.circle"
+  | "exclamationmark.circle.fill"
+  | "clock.fill";
 
 type IconMapping = Record<
   IconSymbolName,
@@ -76,6 +86,16 @@ const MAPPING = {
   "arrow.up.circle.fill": "arrow-circle-up",
   "checkmark.seal.fill": "verified", // Using "verified" as Material equivalent
   "plus.circle.fill": "add-circle", // Using "add-circle" as Material equivalent
+  "cloud.fill": "cloud", // Add this line - using "cloud" as Material equivalent
+  "arrow.down.left.circle.fill": "arrow-circle-down", // For incoming/received
+  "arrow.up.right.circle.fill": "arrow-circle-up", // For outgoing/sent
+  "doc.text.fill": "description", // Add this line - using "description" as Material equivalent
+  "square.and.pencil": "edit",
+  "list.bullet": "list",
+  "checkmark.circle": "check-circle-outline",
+  "exclamationmark.circle": "error-outline",
+  "exclamationmark.circle.fill": "error",
+  "clock.fill": "access-time-filled",
 } as IconMapping;
 
 /**

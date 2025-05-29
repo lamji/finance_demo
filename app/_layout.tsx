@@ -14,6 +14,7 @@ import { PersistGate } from "redux-persist/integration/react";
 
 import { AuthGuard } from "@/components/AuthGuard";
 import { StatusAlert } from "@/components/ui/alert";
+import { NotificationProvider } from "@/context/NotificationProvider";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { persistor, store } from "../store";
 
@@ -39,20 +40,25 @@ export default function RootLayout() {
           <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
               <StatusAlert />
-              <AuthGuard>
-                <Stack>
-                  <Stack.Screen name="login" options={{ headerShown: false }} />
-                  <Stack.Screen
-                    name="(tabs)"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen
-                    name="notifications"
-                    options={{ headerShown: false }}
-                  />
-                  <Stack.Screen name="+not-found" />
-                </Stack>
-              </AuthGuard>
+              <NotificationProvider>
+                <AuthGuard>
+                  <Stack>
+                    <Stack.Screen
+                      name="login"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="(tabs)"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name="notifications"
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen name="+not-found" />
+                  </Stack>
+                </AuthGuard>
+              </NotificationProvider>
             </PersistGate>
           </Provider>
           {/* We'll use specific StatusBar components in each screen for better control */}

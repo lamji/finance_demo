@@ -1,4 +1,6 @@
 import useHeaderTheme from "@/hooks/useHeaderTheme";
+import { useGetUser } from "@/services/query/usegetUser";
+import { RootState } from "@/store";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Alert, Animated } from "react-native";
@@ -44,16 +46,18 @@ export interface WalletStats {
   totalBalance: number;
   totalDebt: number;
   paid: number;
+  totalMonthlyDue: number;
+  nextDueDate: string;
 }
 
 export default function useViewModel() {
   const { theme, tintColor, headerBgColors } = useHeaderTheme();
-  const user = useSelector((state: any) => state.auth.user);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const { data: userData, isLoading: isUserLoading } = useGetUser();
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [lastBackup, setLastBackup] = useState<string | null>(null);
   const [timeSinceBackup, setTimeSinceBackup] = useState<number>(0);
   const bounceAnim = useRef(new Animated.Value(1)).current;
-  const [notificationCount, setNotificationCount] = useState(3);
 
   // Uses the debug variable for easy testing
   const subscriptionType: SubscriptionType = DEBUG_SUBSCRIPTION_TYPE;
@@ -155,12 +159,52 @@ export default function useViewModel() {
     return true;
   };
 
-  // In a real app, these would come from an API or database
-  const walletStats: WalletStats = {
-    totalBalance: 2750,
-    totalDebt: 15750,
-    paid: 2500,
+  // Calculate totals from debtsList
+  const calculateWalletStats = (): WalletStats => {
+    if (!userData?.data?.debtsList) {
+      return {
+        totalBalance: 0,
+        totalDebt: 0,
+        paid: 0,
+        totalMonthlyDue: 0,
+        nextDueDate: new Date().toISOString(),
+      };
+    }
+
+    const debts = userData.data.debtsList;
+
+    const totalDebt = debts.reduce((sum, debt) => sum + debt.totalDebt, 0);
+    const totalPaid = debts.reduce((sum, debt) => sum + debt.total_paid, 0);
+    const totalMonthlyDue = debts.reduce(
+      (sum, debt) => sum + debt.monthly_due,
+      0,
+    );
+
+    // Find next due date from all pending payments
+    const allPendingPayments = debts.flatMap((debt) =>
+      (debt.monthly_payments || [])
+        .filter((payment) => payment.status === "pending")
+        .map((payment) => new Date(payment.due_date)),
+    );
+
+    const nextDueDate =
+      allPendingPayments.length > 0
+        ? new Date(
+            Math.min(...allPendingPayments.map((date) => date.getTime())),
+          ).toISOString()
+        : new Date().toISOString();
+
+    return {
+      totalBalance: totalDebt - totalPaid,
+      totalDebt,
+      paid: totalPaid,
+      totalMonthlyDue,
+      nextDueDate,
+    };
   };
+
+  // Replace the hardcoded walletStats with calculated values
+  const walletStats = calculateWalletStats();
 
   const recentActivity: ActivityItem[] = [
     {
@@ -236,6 +280,7 @@ export default function useViewModel() {
 
   const progressPercentage = calculateProgressPercentage();
 
+  // Update headerConfig
   const headerConfig = {
     backgroundColor: headerBgColors,
     userName: user?.name || "Guest",
@@ -260,7 +305,7 @@ export default function useViewModel() {
     isBackingUp,
     bounceAnim,
     progressPercentage,
-    notificationCount,
     handleNotificationsPress,
+    isUserLoading,
   };
 }

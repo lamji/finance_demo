@@ -1,4 +1,5 @@
 import { useAuthToken } from "@/hooks/useAuthToken";
+import { triggerRefresh } from "@/store/features/notificationSlice";
 import { showAlert } from "@/store/features/sliceAlert";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
@@ -39,17 +40,16 @@ export const usePay = () => {
         throw new Error(data?.error || `Unexpected status code: ${status}`);
       }
 
-      console.log("Payment successful:", data);
       return data;
     },
     onSuccess: (data) => {
-      console.log("Payment mutation successful:", data);
       dispatch(
         showAlert({
           type: "success",
           message: "Your payment has been processed successfully.",
         }),
       );
+      dispatch(triggerRefresh());
       queryClient.invalidateQueries({ queryKey: ["user"] });
     },
     onError: (error: any) => {

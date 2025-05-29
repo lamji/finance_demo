@@ -4,7 +4,10 @@ import { persistReducer, persistStore } from "redux-persist";
 
 import authReducer from "./features/authSlice";
 import debtReducer from "./features/debtSlice";
-import notificationsReducer from "./features/notificationSlice";
+import loadingReducer from "./features/loadingSlice";
+import notificationsReducer, {
+  refreshReducer,
+} from "./features/notificationSlice";
 import alertReducer from "./features/sliceAlert";
 
 const persistConfig = {
@@ -18,6 +21,8 @@ const rootReducer = combineReducers({
   auth: authReducer,
   alert: alertReducer,
   notifications: notificationsReducer,
+  loading: loadingReducer,
+  notificationRefresh: refreshReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

@@ -85,7 +85,6 @@ export default function useViewModel() {
       return Number(debt.remaining_balance) === 0;
     }) || [];
 
-  // console.log("User data:", openLoans);
   return {
     data: user ? [user] : [],
     isLoading,

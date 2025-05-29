@@ -28,7 +28,6 @@ type Notification = {
 export default function NotificationScreen() {
   const router = useRouter();
   const vm = useViewModel();
-  console.log("NotificationScreen rendered", vm);
 
   useEffect(() => {
     Animated.parallel([

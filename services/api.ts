@@ -1,6 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import * as Network from "expo-network";
 
 // Environment variables
 const config = {
@@ -20,42 +19,6 @@ export const api = axios.create({
   baseURL: config.apiUrl,
   // Don't throw on non-200 responses
   validateStatus: (status) => status >= 200 && status < 500,
-});
-
-// Function to check network state
-export const checkNetworkAndApi = async () => {
-  try {
-    const networkState = await Network.getNetworkStateAsync();
-    console.log("Network state:", {
-      isConnected: networkState.isConnected,
-      isInternetReachable: networkState.isInternetReachable,
-      type: networkState.type,
-    }); // Test API connection with guest endpoint
-    const response = await fetch(config.apiUrl + "/api/guest", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    });
-    console.log("API check status:", response.status);
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log("API check response:", data);
-      return true;
-    }
-
-    return false;
-  } catch (error) {
-    console.error("Network/API check failed:", error);
-    return false;
-  }
-};
-
-// Initialize network check
-checkNetworkAndApi().then((isConnected) => {
-  console.log("Initial network check result:", isConnected);
 });
 
 // Token management with configured key

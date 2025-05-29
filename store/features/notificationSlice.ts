@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-// reuse your Notification type
+// Keep the Notification interface
 export interface Notification {
   id: string;
   title: string;
@@ -11,14 +11,27 @@ export interface Notification {
   isSelected?: boolean;
 }
 
+// Keep notifications as an array, add a separate refreshToken
 const initialState: Notification[] = [];
 
+// Create a separate slice just for refresh token
+const refreshSlice = createSlice({
+  name: "notificationRefresh",
+  initialState: { token: 0 },
+  reducers: {
+    triggerRefresh(state) {
+      state.token += 1;
+    },
+  },
+});
+
+// Keep the original notification slice unchanged
 const slice = createSlice({
   name: "notifications",
   initialState,
   reducers: {
     setNotifications(state, action: PayloadAction<Notification[]>) {
-      return action.payload;
+      return action.payload; // Replace entire state
     },
     markAsRead(state, action: PayloadAction<string>) {
       const notif = state.find((n) => n.id === action.payload);
@@ -27,7 +40,6 @@ const slice = createSlice({
     markAllAsRead(state) {
       state.forEach((n) => (n.isRead = true));
     },
-    // optional: remove read or delete notifications
     removeNotification(state, action: PayloadAction<string>) {
       return state.filter((n) => n.id !== action.payload);
     },
@@ -41,4 +53,7 @@ export const {
   removeNotification,
 } = slice.actions;
 
+export const { triggerRefresh } = refreshSlice.actions;
+
 export default slice.reducer;
+export const refreshReducer = refreshSlice.reducer;

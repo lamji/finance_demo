@@ -94,6 +94,19 @@ export default function DashboardScreen() {
                   </ThemedText>
                 </View>
               </View>
+
+              {/* Add this new section */}
+              <View style={styles.monthlyDueSection}>
+                <View style={styles.monthlyDueRow}>
+                  <ThemedText style={styles.monthlyDueLabel}>
+                    Total Monthly Due
+                  </ThemedText>
+                  <ThemedText style={styles.monthlyDueAmount}>
+                    {formatPHPCurrency(walletStats.totalMonthlyDue)}
+                  </ThemedText>
+                </View>
+              </View>
+
               <View style={styles.progressSection}>
                 <View style={styles.progressHeader}>
                   <ThemedText style={styles.progressLabel}>
@@ -624,5 +637,41 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+  },
+  monthlyDueSection: {
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255, 255, 255, 0.2)",
+    gap: 8,
+  },
+  monthlyDueRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  monthlyDueLabel: {
+    color: "#fff",
+    fontSize: 14,
+    opacity: 0.8,
+  },
+  monthlyDueAmount: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "600",
+  },
+  monthlyDueInfo: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  monthlyDueStatus: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  monthlyDueDate: {
+    color: "#fff",
+    fontSize: 12,
+    opacity: 0.8,
   },
 });

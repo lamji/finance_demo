@@ -43,13 +43,3 @@ export function useBackup({ enabled, onSuccess, onError }: UseBackupOptions) {
     isScheduled: false,
   };
 }
-
-// const { backupNow, lastBackup, isScheduled } = useBackup({
-//   enabled: true,
-//   onSuccess: () => {
-//     console.log("Backup completed successfully");
-//   },
-//   onError: (error) => {
-//     console.error("Backup failed:", error);
-//   },
-// });

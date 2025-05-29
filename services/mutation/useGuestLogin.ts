@@ -4,8 +4,6 @@ import { ApiResponse, GuestLoginResponse } from "../types";
 
 const guestLogin = async (): Promise<ApiResponse<GuestLoginResponse>> => {
   try {
-    console.log("Attempting guest login");
-
     // Get guest credentials
     const response = await api.post("/api/guest", null, {
       headers: {
@@ -28,7 +26,7 @@ const guestLogin = async (): Promise<ApiResponse<GuestLoginResponse>> => {
     const guestData = response.data;
 
     // Now we need to login with the received credentials
-    console.log("Attempting login with guest credentials");
+
     const loginResponse = await api.post("/api/guest", null, {
       headers: {
         "Content-Type": "application/json",
@@ -46,13 +44,10 @@ const guestLogin = async (): Promise<ApiResponse<GuestLoginResponse>> => {
       );
     }
 
-    console.log("Login response:", loginResponse.data);
-
     // Store the token from login response
     const token = loginResponse.data?.token;
     if (token) {
       await setAuthToken(token);
-      console.log("Token stored successfully");
     } else {
       console.warn("No token received in login response");
       throw new Error("No authentication token received from server");

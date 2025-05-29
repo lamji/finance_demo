@@ -1,3 +1,4 @@
+import { triggerRefresh } from "@/store/features/notificationSlice";
 import { showAlert } from "@/store/features/sliceAlert";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
@@ -30,9 +31,10 @@ export function useAddDebt() {
           message: `Successfully added debt for ${data.bank}`,
         }),
       );
-
+      // dispatch(triggerRefresh());
       // Invalidate and refetch user data
       queryClient.invalidateQueries({ queryKey: ["user"] });
+      dispatch(triggerRefresh());
     },
     onError: (error: Error) => {
       dispatch(

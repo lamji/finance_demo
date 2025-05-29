@@ -110,9 +110,6 @@ export default function useViewModel() {
   };
   const isEditMode = !!editingDebt;
 
-  console.log("Editing Debt:", editingDebt);
-  console.log("EditingDebt term_length:", editingDebt?.term_length);
-
   const handleCurrencyChange = (
     field: string,
     value: string,

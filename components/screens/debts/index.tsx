@@ -3,6 +3,7 @@
 import React from "react";
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   FlatList,
   StatusBar,
@@ -15,9 +16,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { LoadingOverlay } from "@/components/ui/activityIndicator";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
-import { deleteDebt } from "@/store/features/debtSlice";
+import { useDeleteDebt } from "@/services/mutation/useDeleteDebt"; // Import the mutation hook
 import { router } from "expo-router";
 import { SwipeableDebtItem } from "./SwipeableDebtItem";
 import useViewModel from "./useViewModel";
@@ -27,7 +29,6 @@ export default function DebtManagerScreen() {
     safeAreaBackground,
     theme,
     tintColor,
-    dispatch,
     fadeAnim,
     scaleAnim,
     pulseValue,
@@ -37,13 +38,37 @@ export default function DebtManagerScreen() {
     fetchLoading,
   } = useViewModel();
 
+  // Use the delete mutation hook
+  const deleteDebtMutation = useDeleteDebt();
+
+  // Handle delete with confirmation
+  const handleDeleteDebt = (id: string, bankName: string) => {
+    Alert.alert(
+      "Delete Debt",
+      `Are you sure you want to delete ${bankName}?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: () => deleteDebtMutation.mutate({ debtId: id }),
+          style: "destructive",
+        },
+      ],
+      { cancelable: true },
+    );
+  };
+
   const renderItem = ({ item: debt }: { item: any }) => (
     <SwipeableDebtItem
       key={debt._id}
       debt={debt}
-      onDelete={(id) => dispatch(deleteDebt(id))}
+      onDelete={(id) => handleDeleteDebt(id, debt.bank)} // Pass both id and bank name
       tintColor={tintColor}
       calculateProgress={calculateProgress}
+      // isDeleting={deleteDebtMutation.isPending} // Pass loading state
     />
   );
 
@@ -201,6 +226,11 @@ export default function DebtManagerScreen() {
             )}
           </View>
         </Animated.View>
+        <LoadingOverlay
+          loadingKey="deleteDebt"
+          message="Deleting debt..."
+          fullScreen={true}
+        />
       </SafeAreaView>
     </GestureHandlerRootView>
   );

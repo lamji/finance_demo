@@ -1,12 +1,27 @@
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { addMonths, eachDayOfInterval, endOfMonth, format, getYear, isSameDay, isSameMonth, startOfMonth } from 'date-fns';
-import React, { useEffect, useRef, useState } from 'react';
-import { Dimensions, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import Modal from 'react-native-modal';
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { IconSymbol } from "@/components/ui/IconSymbol";
+import { Colors } from "@/constants/Colors";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import {
+  addMonths,
+  eachDayOfInterval,
+  endOfMonth,
+  format,
+  getYear,
+  isSameDay,
+  isSameMonth,
+  startOfMonth,
+} from "date-fns";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import Modal from "react-native-modal";
 
 interface BottomSheetCalendarProps {
   isVisible: boolean;
@@ -15,10 +30,10 @@ interface BottomSheetCalendarProps {
   onDateSelect: (date: Date) => void;
   minDate?: Date;
   maxDate?: Date;
-  version?: 'v1' | 'v2';
+  version?: "v1" | "v2";
 }
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
+const SCREEN_HEIGHT = Dimensions.get("window").height;
 const ITEM_HEIGHT = 40;
 
 const generateArrayInRange = (start: number, end: number) => {
@@ -32,9 +47,9 @@ export function BottomSheetCalendar({
   onDateSelect,
   minDate,
   maxDate,
-  version = 'v1',
+  version = "v1",
 }: BottomSheetCalendarProps) {
-  const theme = useColorScheme() ?? 'light';
+  const theme = useColorScheme() ?? "light";
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(selectedDate));
   const [scrollDate, setScrollDate] = useState({
     day: selectedDate.getDate(),
@@ -48,28 +63,41 @@ export function BottomSheetCalendar({
 
   // Update scroll position when modal becomes visible
   useEffect(() => {
-    if (isVisible && version === 'v2') {
+    if (isVisible && version === "v2") {
       // Use setTimeout to ensure the ScrollViews are properly laid out
       setTimeout(() => {
         // Scroll to day
         const dayIndex = scrollDate.day - 1;
-        dayScrollRef.current?.scrollTo({ y: dayIndex * ITEM_HEIGHT, animated: false });
+        dayScrollRef.current?.scrollTo({
+          y: dayIndex * ITEM_HEIGHT,
+          animated: false,
+        });
 
         // Scroll to month
         const monthIndex = scrollDate.month - 1;
-        monthScrollRef.current?.scrollTo({ y: monthIndex * ITEM_HEIGHT, animated: false });
+        monthScrollRef.current?.scrollTo({
+          y: monthIndex * ITEM_HEIGHT,
+          animated: false,
+        });
 
         // Scroll to year
         // const currentYear = getYear(new Date());
-        const yearIndex = years.findIndex(year => year === scrollDate.year);
-        yearScrollRef.current?.scrollTo({ y: yearIndex * ITEM_HEIGHT, animated: false });
+        const yearIndex = years.findIndex((year) => year === scrollDate.year);
+        yearScrollRef.current?.scrollTo({
+          y: yearIndex * ITEM_HEIGHT,
+          animated: false,
+        });
       }, 50);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVisible, version, scrollDate]);
 
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    setCurrentMonth(direction === 'next' ? addMonths(currentMonth, 1) : addMonths(currentMonth, -1));
+  const navigateMonth = (direction: "prev" | "next") => {
+    setCurrentMonth(
+      direction === "next"
+        ? addMonths(currentMonth, 1)
+        : addMonths(currentMonth, -1),
+    );
   };
 
   const renderCalendarDays = () => {
@@ -80,14 +108,15 @@ export function BottomSheetCalendar({
 
     return (
       <View style={styles.daysContainer}>
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
           <ThemedText key={day} style={styles.weekdayLabel}>
             {day}
           </ThemedText>
         ))}
         {days.map((date) => {
           const isSelected = isSameDay(date, selectedDate);
-          const isDisabled = (minDate && date < minDate) || (maxDate && date > maxDate);
+          const isDisabled =
+            (minDate && date < minDate) || (maxDate && date > maxDate);
           const isCurrentMonth = isSameMonth(date, currentMonth);
 
           return (
@@ -100,15 +129,17 @@ export function BottomSheetCalendar({
                 isSelected && {
                   backgroundColor: Colors[theme].tint,
                 },
-              ]}>
+              ]}
+            >
               <ThemedText
                 style={[
                   styles.dayText,
                   isSelected && styles.selectedDayText,
                   !isCurrentMonth && styles.otherMonthText,
                   isDisabled && styles.disabledDayText,
-                ]}>
-                {format(date, 'd')}
+                ]}
+              >
+                {format(date, "d")}
               </ThemedText>
             </TouchableOpacity>
           );
@@ -119,19 +150,29 @@ export function BottomSheetCalendar({
 
   const days = generateArrayInRange(1, 31);
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
   const currentYear = getYear(new Date());
   const years = generateArrayInRange(currentYear - 50, currentYear + 50);
 
   const renderScrollablePicker = () => {
-    const handleScroll = (value: number, type: 'day' | 'month' | 'year') => {
-      setScrollDate(prev => ({ ...prev, [type]: value }));
+    const handleScroll = (value: number, type: "day" | "month" | "year") => {
+      setScrollDate((prev) => ({ ...prev, [type]: value }));
       const newDate = new Date(
-        type === 'year' ? value : scrollDate.year,
-        type === 'month' ? value - 1 : scrollDate.month - 1,
-        type === 'day' ? value : scrollDate.day
+        type === "year" ? value : scrollDate.year,
+        type === "month" ? value - 1 : scrollDate.month - 1,
+        type === "day" ? value : scrollDate.day,
       );
       onDateSelect(newDate);
     };
@@ -148,22 +189,26 @@ export function BottomSheetCalendar({
             />
             <ThemedText style={styles.scrollableLabel}>Day</ThemedText>
           </View>
-          <ScrollView 
+          <ScrollView
             ref={dayScrollRef}
-            style={styles.scrollView} 
-            showsVerticalScrollIndicator={false}>
-            {days.map(day => (
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+          >
+            {days.map((day) => (
               <TouchableOpacity
                 key={`day-${day}`}
                 style={[
                   styles.scrollableItem,
                   scrollDate.day === day && styles.selectedScrollItem,
                 ]}
-                onPress={() => handleScroll(day, 'day')}>
-                <ThemedText style={[
-                  styles.scrollableText,
-                  scrollDate.day === day && styles.selectedScrollText,
-                ]}>
+                onPress={() => handleScroll(day, "day")}
+              >
+                <ThemedText
+                  style={[
+                    styles.scrollableText,
+                    scrollDate.day === day && styles.selectedScrollText,
+                  ]}
+                >
                   {day}
                 </ThemedText>
               </TouchableOpacity>
@@ -181,10 +226,11 @@ export function BottomSheetCalendar({
             />
             <ThemedText style={styles.scrollableLabel}>Month</ThemedText>
           </View>
-          <ScrollView 
+          <ScrollView
             ref={monthScrollRef}
-            style={styles.scrollView} 
-            showsVerticalScrollIndicator={false}>
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+          >
             {months.map((month, index) => (
               <TouchableOpacity
                 key={`month-${month}`}
@@ -192,11 +238,14 @@ export function BottomSheetCalendar({
                   styles.scrollableItem,
                   scrollDate.month === index + 1 && styles.selectedScrollItem,
                 ]}
-                onPress={() => handleScroll(index + 1, 'month')}>
-                <ThemedText style={[
-                  styles.scrollableText,
-                  scrollDate.month === index + 1 && styles.selectedScrollText,
-                ]}>
+                onPress={() => handleScroll(index + 1, "month")}
+              >
+                <ThemedText
+                  style={[
+                    styles.scrollableText,
+                    scrollDate.month === index + 1 && styles.selectedScrollText,
+                  ]}
+                >
                   {month}
                 </ThemedText>
               </TouchableOpacity>
@@ -214,22 +263,26 @@ export function BottomSheetCalendar({
             />
             <ThemedText style={styles.scrollableLabel}>Year</ThemedText>
           </View>
-          <ScrollView 
+          <ScrollView
             ref={yearScrollRef}
-            style={styles.scrollView} 
-            showsVerticalScrollIndicator={false}>
-            {years.map(year => (
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+          >
+            {years.map((year) => (
               <TouchableOpacity
                 key={`year-${year}`}
                 style={[
                   styles.scrollableItem,
                   scrollDate.year === year && styles.selectedScrollItem,
                 ]}
-                onPress={() => handleScroll(year, 'year')}>
-                <ThemedText style={[
-                  styles.scrollableText,
-                  scrollDate.year === year && styles.selectedScrollText,
-                ]}>
+                onPress={() => handleScroll(year, "year")}
+              >
+                <ThemedText
+                  style={[
+                    styles.scrollableText,
+                    scrollDate.year === year && styles.selectedScrollText,
+                  ]}
+                >
                   {year}
                 </ThemedText>
               </TouchableOpacity>
@@ -243,17 +296,19 @@ export function BottomSheetCalendar({
   return (
     <Modal
       isVisible={isVisible}
-      onBackdropPress={onClose}
-      onBackButtonPress={onClose}
-      style={styles.modal}
+      // Remove these lines to prevent closing on backdrop/back button
+      // onBackdropPress={onClose}
+      // onBackButtonPress={onClose}
       backdropOpacity={0.5}
+      style={styles.modal}
       animationIn="slideInUp"
-      animationOut="slideOutDown">
+      animationOut="slideOutDown"
+    >
       <ThemedView style={styles.container}>
-        {version === 'v1' ? (
+        {version === "v1" ? (
           <>
             <View style={styles.header}>
-              <TouchableOpacity onPress={() => navigateMonth('prev')}>
+              <TouchableOpacity onPress={() => navigateMonth("prev")}>
                 <IconSymbol
                   name="chevron.left"
                   size={24}
@@ -261,9 +316,9 @@ export function BottomSheetCalendar({
                 />
               </TouchableOpacity>
               <ThemedText style={styles.monthText}>
-                {format(currentMonth, 'MMMM yyyy')}
+                {format(currentMonth, "MMMM yyyy")}
               </ThemedText>
-              <TouchableOpacity onPress={() => navigateMonth('next')}>
+              <TouchableOpacity onPress={() => navigateMonth("next")}>
                 <IconSymbol
                   name="chevron.right"
                   size={24}
@@ -278,7 +333,8 @@ export function BottomSheetCalendar({
         )}
         <TouchableOpacity
           style={[styles.doneButton, { backgroundColor: Colors[theme].tint }]}
-          onPress={onClose}>
+          onPress={onClose}
+        >
           <ThemedText style={styles.doneButtonText}>Done</ThemedText>
         </TouchableOpacity>
       </ThemedView>
@@ -289,7 +345,7 @@ export function BottomSheetCalendar({
 const styles = StyleSheet.create({
   modal: {
     margin: 0,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   container: {
     height: SCREEN_HEIGHT * 0.6,
@@ -298,42 +354,42 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 16,
   },
   monthText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   daysContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
     paddingTop: 16,
   },
   weekdayLabel: {
-    width: '14.28%',
-    textAlign: 'center',
+    width: "14.28%",
+    textAlign: "center",
     marginBottom: 8,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     opacity: 0.6,
   },
   dayButton: {
-    width: '14.28%',
+    width: "14.28%",
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 20,
   },
   dayText: {
     fontSize: 16,
   },
   selectedDayText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
   },
   otherMonthText: {
     opacity: 0.3,
@@ -342,19 +398,19 @@ const styles = StyleSheet.create({
     opacity: 0.2,
   },
   doneButton: {
-    marginTop: 'auto',
+    marginTop: "auto",
     padding: 16,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   doneButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   scrollableContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 20,
     height: SCREEN_HEIGHT * 0.4,
@@ -364,9 +420,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
   labelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 8,
   },
   labelIcon: {
@@ -375,8 +431,8 @@ const styles = StyleSheet.create({
   },
   scrollableLabel: {
     fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
     opacity: 0.6,
   },
   scrollView: {
@@ -384,18 +440,18 @@ const styles = StyleSheet.create({
   },
   scrollableItem: {
     height: ITEM_HEIGHT,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 8,
   },
   selectedScrollItem: {
-    backgroundColor: '#007AFF20',
+    backgroundColor: "#007AFF20",
   },
   scrollableText: {
     fontSize: 16,
   },
   selectedScrollText: {
-    color: '#007AFF',
-    fontWeight: '600',
+    color: "#007AFF",
+    fontWeight: "600",
   },
 });

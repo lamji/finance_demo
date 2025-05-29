@@ -1,3 +1,4 @@
+import { triggerRefresh } from "@/store/features/notificationSlice";
 import { showAlert } from "@/store/features/sliceAlert";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
@@ -28,7 +29,7 @@ export function useSaveTransaction() {
           message: `Transaction of ${data.amount} successfully recorded for ${data.bank}`,
         }),
       );
-
+      dispatch(triggerRefresh());
       // Invalidate and refetch user data
       queryClient.invalidateQueries({ queryKey: ["user"] });
     },

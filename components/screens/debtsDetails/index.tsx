@@ -19,7 +19,6 @@ const FILTERS = [
 ];
 
 const DebtsDetailsScreen = ({ id }: { id: string }) => {
-  console.log(id);
   const { data: user } = useGetUser();
   const { headerBgColors, theme, tintColor } = useHeaderTheme();
   const debt = user?.data?.debtsList?.find((debt) => debt._id === id) as
@@ -35,9 +34,7 @@ const DebtsDetailsScreen = ({ id }: { id: string }) => {
   const router = useRouter();
 
   const handleEdit = () => {
-    console.log("Edit button clicked", { debt, id });
     if (!debt) {
-      console.log("No debt found");
       return;
     }
     dispatch(
@@ -47,7 +44,6 @@ const DebtsDetailsScreen = ({ id }: { id: string }) => {
         ...debt, // Include the full debt data for editing
       }),
     );
-    console.log("Navigating to add/edit debt screen");
     router.push({
       pathname: "/debts/add",
       params: { id: debt._id, edit: "true" },
