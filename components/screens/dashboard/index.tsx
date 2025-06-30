@@ -31,6 +31,7 @@ export default function DashboardScreen() {
     timeSinceBackup,
     bounceAnim,
     progressPercentage,
+    checking,
   } = useViewModel();
 
   return (

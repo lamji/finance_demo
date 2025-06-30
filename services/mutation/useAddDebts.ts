@@ -5,7 +5,10 @@ import { useDispatch } from "react-redux";
 import { api } from "../api";
 import { Debt } from "../query/usegetUser";
 
+import { DebtType } from "@/components/screens/debt/useViewModel";
+
 interface AddDebtPayload {
+  type: DebtType;
   bank: string;
   totalDebt: number;
   monthlyPayment: string;

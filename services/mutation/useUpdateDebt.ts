@@ -1,3 +1,4 @@
+import { DebtType } from "@/components/screens/debt/useViewModel";
 import { triggerRefresh } from "@/store/features/notificationSlice";
 import { showAlert } from "@/store/features/sliceAlert";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -6,6 +7,7 @@ import { api } from "../api";
 import { Debt } from "../query/usegetUser";
 
 interface UpdateDebtPayload {
+  type: DebtType;
   debtId: string;
   bank?: string;
   totalDebt?: number;

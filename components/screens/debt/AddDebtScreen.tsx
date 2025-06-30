@@ -6,7 +6,6 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Colors } from "@/constants/Colors";
 import { formatCurrencyForDisplay } from "@/helper";
 import { format } from "date-fns";
-import { Formik } from "formik";
 import React from "react";
 import {
   KeyboardAvoidingView,
@@ -18,22 +17,621 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import useViewModel, { validationSchema } from "./useViewModel";
-
-type TermType = "months" | "years";
-
-interface DebtFormValues {
-  bank: string;
-  totalDebt: string;
-  monthlyPayment: string;
-  term: string;
-  termType: TermType;
-  startDate: Date;
-  dueDate: Date;
-}
+import useViewModel from "./useViewModel";
 
 export default function AddDebtScreen() {
   const vm = useViewModel();
+
+  const formik = vm.formik;
+
+  const renderLoanFields = () => (
+    <>
+      <View style={styles.inputGroup}>
+        <ThemedText style={styles.label}>Bank/Institution</ThemedText>
+        <TextInput
+          style={[
+            styles.input,
+            {
+              borderColor:
+                formik.errors.bank && formik.touched.bank
+                  ? "red"
+                  : Colors[vm.colorScheme].text,
+              color: Colors[vm.colorScheme].text,
+            },
+          ]}
+          value={formik.values.bank}
+          onChangeText={formik.handleChange("bank")}
+          onBlur={formik.handleBlur("bank")}
+          placeholder="Enter bank or institution name"
+          placeholderTextColor={Colors[vm.colorScheme].text + "80"}
+        />
+        {formik.errors.bank && formik.touched.bank && (
+          <ThemedText style={styles.errorText}>{formik.errors.bank}</ThemedText>
+        )}
+      </View>
+
+      <View style={styles.inputGroup}>
+        <ThemedText style={styles.label}>Total Debt</ThemedText>
+        <View
+          style={[
+            styles.currencyInputContainer,
+            {
+              borderColor:
+                formik.errors.totalDebt && formik.touched.totalDebt
+                  ? "red"
+                  : Colors[vm.colorScheme].text,
+            },
+          ]}
+        >
+          <ThemedText style={styles.currencySymbol}>₱</ThemedText>
+          <TextInput
+            style={[
+              styles.currencyInput,
+              { color: Colors[vm.colorScheme].text },
+            ]}
+            value={formatCurrencyForDisplay(formik.values.totalDebt)}
+            onChangeText={(text) =>
+              vm.handleCurrencyChange("totalDebt", text, formik.setFieldValue)
+            }
+            onBlur={formik.handleBlur("totalDebt")}
+            placeholder="0.00"
+            keyboardType="numeric"
+            placeholderTextColor={Colors[vm.colorScheme].text + "80"}
+          />
+        </View>
+        {formik.errors.totalDebt && formik.touched.totalDebt && (
+          <ThemedText style={styles.errorText}>
+            {formik.errors.totalDebt}
+          </ThemedText>
+        )}
+      </View>
+
+      {/* Monthly Payment Field */}
+      <View style={styles.inputGroup}>
+        <ThemedText style={styles.label}>Monthly Payment</ThemedText>
+        <View
+          style={[
+            styles.currencyInputContainer,
+            {
+              borderColor:
+                formik.errors.monthlyPayment && formik.touched.monthlyPayment
+                  ? "red"
+                  : Colors[vm.colorScheme].text,
+            },
+          ]}
+        >
+          <ThemedText style={styles.currencySymbol}>₱</ThemedText>
+          <TextInput
+            style={[
+              styles.currencyInput,
+              { color: Colors[vm.colorScheme].text },
+            ]}
+            value={formatCurrencyForDisplay(formik.values.monthlyPayment)}
+            onChangeText={(text) =>
+              vm.handleCurrencyChange(
+                "monthlyPayment",
+                text,
+                formik.setFieldValue,
+              )
+            }
+            onBlur={formik.handleBlur("monthlyPayment")}
+            placeholder="0.00"
+            keyboardType="numeric"
+            placeholderTextColor={Colors[vm.colorScheme].text + "80"}
+          />
+        </View>
+        {formik.errors.monthlyPayment && formik.touched.monthlyPayment && (
+          <ThemedText style={styles.errorText}>
+            {formik.errors.monthlyPayment}
+          </ThemedText>
+        )}
+      </View>
+
+      {/* Term Fields */}
+      <View style={styles.inputGroup}>
+        <ThemedText style={styles.label}>Term</ThemedText>
+        <View style={styles.termContainer}>
+          <TextInput
+            style={[
+              styles.termInput,
+              {
+                borderColor:
+                  formik.errors.term && formik.touched.term
+                    ? "red"
+                    : Colors[vm.colorScheme].text,
+                color: Colors[vm.colorScheme].text,
+              },
+            ]}
+            value={formik.values.term}
+            onChangeText={formik.handleChange("term")}
+            onBlur={formik.handleBlur("term")}
+            placeholder="Enter term"
+            keyboardType="numeric"
+            placeholderTextColor={Colors[vm.colorScheme].text + "80"}
+          />
+          <View style={styles.termTypeContainer}>
+            <TouchableOpacity
+              style={[
+                styles.termTypeButton,
+                {
+                  backgroundColor:
+                    formik.values.termType === "months"
+                      ? Colors[vm.colorScheme].tint
+                      : "transparent",
+                  borderColor: Colors[vm.colorScheme].text,
+                },
+              ]}
+              onPress={() => formik.setFieldValue("termType", "months")}
+            >
+              <ThemedText
+                style={[
+                  styles.termTypeText,
+                  {
+                    color:
+                      formik.values.termType === "months"
+                        ? "#fff"
+                        : Colors[vm.colorScheme].text,
+                  },
+                ]}
+              >
+                Months
+              </ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.termTypeButton,
+                {
+                  backgroundColor:
+                    formik.values.termType === "years"
+                      ? Colors[vm.colorScheme].tint
+                      : "transparent",
+                  borderColor: Colors[vm.colorScheme].text,
+                },
+              ]}
+              onPress={() => formik.setFieldValue("termType", "years")}
+            >
+              <ThemedText
+                style={[
+                  styles.termTypeText,
+                  {
+                    color:
+                      formik.values.termType === "years"
+                        ? "#fff"
+                        : Colors[vm.colorScheme].text,
+                  },
+                ]}
+              >
+                Years
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+        </View>
+        {formik.errors.term && formik.touched.term && (
+          <ThemedText style={styles.errorText}>{formik.errors.term}</ThemedText>
+        )}
+      </View>
+
+      {/* Date Fields */}
+      <View style={styles.inputGroup}>
+        <ThemedText style={styles.label}>Start Date</ThemedText>
+        <TouchableOpacity
+          onPress={() => vm.setShowStartDateCalendar(true)}
+          style={[
+            styles.dateButton,
+            {
+              borderColor:
+                formik.errors.startDate && formik.touched.startDate
+                  ? "red"
+                  : Colors[vm.colorScheme].text,
+            },
+          ]}
+        >
+          <IconSymbol
+            name="calendar"
+            size={20}
+            color={Colors[vm.colorScheme].text}
+            style={styles.calendarIcon}
+          />
+          <ThemedText
+            style={[styles.dateText, { color: Colors[vm.colorScheme].text }]}
+          >
+            {formik.values.startDate
+              ? format(formik.values.startDate, "MMMM d, yyyy")
+              : "Select date"}
+          </ThemedText>
+        </TouchableOpacity>
+        {formik.errors.startDate && formik.touched.startDate && (
+          <ThemedText style={styles.errorText}>
+            {String(formik.errors.startDate)}
+          </ThemedText>
+        )}
+      </View>
+
+      <View style={styles.inputGroup}>
+        <ThemedText style={styles.label}>Due Date</ThemedText>
+        <TouchableOpacity
+          onPress={() => vm.setShowDueDateCalendar(true)}
+          style={[
+            styles.dateButton,
+            {
+              borderColor:
+                formik.errors.dueDate && formik.touched.dueDate
+                  ? "red"
+                  : Colors[vm.colorScheme].text,
+            },
+          ]}
+        >
+          <IconSymbol
+            name="calendar"
+            size={20}
+            color={Colors[vm.colorScheme].text}
+            style={styles.calendarIcon}
+          />
+          <ThemedText
+            style={[styles.dateText, { color: Colors[vm.colorScheme].text }]}
+          >
+            {formik.values.dueDate
+              ? format(formik.values.dueDate, "MMMM d, yyyy")
+              : "Select date"}
+          </ThemedText>
+        </TouchableOpacity>
+        {formik.errors.dueDate && formik.touched.dueDate && (
+          <ThemedText style={styles.errorText}>
+            {String(formik.errors.dueDate)}
+          </ThemedText>
+        )}
+      </View>
+    </>
+  );
+  const renderCreditCardFields = () => (
+    <>
+      {/* Bank Field */}
+      <View style={styles.inputGroup}>
+        <ThemedText style={styles.label}>Bank/Institution</ThemedText>
+        <TextInput
+          style={[
+            styles.input,
+            {
+              borderColor:
+                formik.errors.bank && formik.touched.bank
+                  ? "red"
+                  : Colors[vm.colorScheme].text,
+              color: Colors[vm.colorScheme].text,
+            },
+          ]}
+          value={formik.values.bank}
+          onChangeText={formik.handleChange("bank")}
+          onBlur={formik.handleBlur("bank")}
+          placeholder="Enter bank name"
+          placeholderTextColor={Colors[vm.colorScheme].text + "80"}
+        />
+        {formik.errors.bank && formik.touched.bank && (
+          <ThemedText style={styles.errorText}>{formik.errors.bank}</ThemedText>
+        )}
+      </View>
+
+      {/* Payment Type Selection */}
+      <View style={styles.inputGroup}>
+        <ThemedText style={styles.label}>Payment Type</ThemedText>
+        <View style={styles.typeContainer}>
+          <TouchableOpacity
+            style={[
+              styles.typeButton,
+              {
+                backgroundColor:
+                  formik.values.paymentType === "full"
+                    ? Colors[vm.colorScheme].tint
+                    : "transparent",
+                borderColor: Colors[vm.colorScheme].text,
+              },
+            ]}
+            onPress={() => formik.setFieldValue("paymentType", "full")}
+          >
+            <IconSymbol
+              name="checkmark.circle"
+              size={20}
+              color={
+                formik.values.paymentType === "full"
+                  ? "#fff"
+                  : Colors[vm.colorScheme].text
+              }
+              style={styles.typeIcon}
+            />
+            <ThemedText
+              style={[
+                styles.typeText,
+                {
+                  color:
+                    formik.values.paymentType === "full"
+                      ? "#fff"
+                      : Colors[vm.colorScheme].text,
+                },
+              ]}
+            >
+              Full Payment
+            </ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.typeButton,
+              {
+                backgroundColor:
+                  formik.values.paymentType === "installment"
+                    ? Colors[vm.colorScheme].tint
+                    : "transparent",
+                borderColor: Colors[vm.colorScheme].text,
+              },
+            ]}
+            onPress={() => formik.setFieldValue("paymentType", "installment")}
+          >
+            <IconSymbol
+              name="banknote"
+              size={20}
+              color={
+                formik.values.paymentType === "installment"
+                  ? "#fff"
+                  : Colors[vm.colorScheme].text
+              }
+              style={styles.typeIcon}
+            />
+            <ThemedText
+              style={[
+                styles.typeText,
+                {
+                  color:
+                    formik.values.paymentType === "installment"
+                      ? "#fff"
+                      : Colors[vm.colorScheme].text,
+                },
+              ]}
+            >
+              Installment
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Conditional Fields Based on Payment Type */}
+      {formik.values.paymentType === "full" ? (
+        <>
+          {/* Monthly Due Amount */}
+          <View style={styles.inputGroup}>
+            <ThemedText style={styles.label}>Monthly Due Amount</ThemedText>
+            <View
+              style={[
+                styles.currencyInputContainer,
+                {
+                  borderColor:
+                    formik.errors.monthlyPayment &&
+                    formik.touched.monthlyPayment
+                      ? "red"
+                      : Colors[vm.colorScheme].text,
+                },
+              ]}
+            >
+              <ThemedText style={styles.currencySymbol}>₱</ThemedText>
+              <TextInput
+                style={[
+                  styles.currencyInput,
+                  { color: Colors[vm.colorScheme].text },
+                ]}
+                value={formatCurrencyForDisplay(formik.values.monthlyPayment)}
+                onChangeText={(text) =>
+                  vm.handleCurrencyChange(
+                    "monthlyPayment",
+                    text,
+                    formik.setFieldValue,
+                  )
+                }
+                onBlur={formik.handleBlur("monthlyPayment")}
+                placeholder="0.00"
+                keyboardType="numeric"
+                placeholderTextColor={Colors[vm.colorScheme].text + "80"}
+              />
+            </View>
+            {formik.errors.monthlyPayment && formik.touched.monthlyPayment && (
+              <ThemedText style={styles.errorText}>
+                {formik.errors.monthlyPayment}
+              </ThemedText>
+            )}
+          </View>
+        </>
+      ) : (
+        <>
+          {/* Total Purchase Amount */}
+          <View style={styles.inputGroup}>
+            <ThemedText style={styles.label}>Total Purchase Amount</ThemedText>
+            <View
+              style={[
+                styles.currencyInputContainer,
+                {
+                  borderColor:
+                    formik.errors.totalDebt && formik.touched.totalDebt
+                      ? "red"
+                      : Colors[vm.colorScheme].text,
+                },
+              ]}
+            >
+              <ThemedText style={styles.currencySymbol}>₱</ThemedText>
+              <TextInput
+                style={[
+                  styles.currencyInput,
+                  { color: Colors[vm.colorScheme].text },
+                ]}
+                value={formatCurrencyForDisplay(formik.values.totalDebt)}
+                onChangeText={(text) =>
+                  vm.handleCurrencyChange(
+                    "totalDebt",
+                    text,
+                    formik.setFieldValue,
+                  )
+                }
+                onBlur={formik.handleBlur("totalDebt")}
+                placeholder="0.00"
+                keyboardType="numeric"
+                placeholderTextColor={Colors[vm.colorScheme].text + "80"}
+              />
+            </View>
+            {formik.errors.totalDebt && formik.touched.totalDebt && (
+              <ThemedText style={styles.errorText}>
+                {formik.errors.totalDebt}
+              </ThemedText>
+            )}
+          </View>
+
+          {/* Number of Installments */}
+          <View style={styles.inputGroup}>
+            <ThemedText style={styles.label}>Number of Installments</ThemedText>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  borderColor:
+                    formik.errors.term && formik.touched.term
+                      ? "red"
+                      : Colors[vm.colorScheme].text,
+                  color: Colors[vm.colorScheme].text,
+                },
+              ]}
+              value={formik.values.term}
+              onChangeText={formik.handleChange("term")}
+              onBlur={formik.handleBlur("term")}
+              placeholder="Enter number of months"
+              keyboardType="numeric"
+              placeholderTextColor={Colors[vm.colorScheme].text + "80"}
+            />
+            {formik.errors.term && formik.touched.term && (
+              <ThemedText style={styles.errorText}>
+                {formik.errors.term}
+              </ThemedText>
+            )}
+          </View>
+
+          {/* Auto Calculate Toggle */}
+          <View style={styles.inputGroup}>
+            <View style={styles.checkboxContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.checkbox,
+                  {
+                    backgroundColor: formik.values.isAutoCalculated
+                      ? Colors[vm.colorScheme].tint
+                      : "transparent",
+                    borderColor: Colors[vm.colorScheme].text,
+                  },
+                ]}
+                onPress={() => {
+                  formik.setFieldValue(
+                    "isAutoCalculated",
+                    !formik.values.isAutoCalculated,
+                  );
+                }}
+              >
+                {formik.values.isAutoCalculated && (
+                  <IconSymbol name="checkmark.circle" size={16} color="#fff" />
+                )}
+              </TouchableOpacity>
+              <ThemedText style={styles.checkboxLabel}>
+                Auto-calculate monthly installment
+              </ThemedText>
+            </View>
+          </View>
+
+          {/* Monthly Installment Amount (Calculated) */}
+          <View style={styles.inputGroup}>
+            <ThemedText style={styles.label}>Monthly Installment</ThemedText>
+            <View
+              style={[
+                styles.currencyInputContainer,
+                { opacity: formik.values.isAutoCalculated ? 0.7 : 1 },
+              ]}
+            >
+              <ThemedText style={styles.currencySymbol}>₱</ThemedText>
+              {formik.values.isAutoCalculated ? (
+                <ThemedText
+                  style={[
+                    styles.currencyInput,
+                    { color: Colors[vm.colorScheme].text },
+                  ]}
+                >
+                  {formatCurrencyForDisplay(
+                    String(
+                      Number(formik.values.totalDebt || 0) /
+                        Number(formik.values.term || 1),
+                    ),
+                  )}
+                </ThemedText>
+              ) : (
+                <TextInput
+                  style={[
+                    styles.currencyInput,
+                    { color: Colors[vm.colorScheme].text },
+                  ]}
+                  value={formatCurrencyForDisplay(formik.values.monthlyPayment)}
+                  onChangeText={(text) =>
+                    vm.handleCurrencyChange(
+                      "monthlyPayment",
+                      text,
+                      formik.setFieldValue,
+                    )
+                  }
+                  onBlur={formik.handleBlur("monthlyPayment")}
+                  placeholder="0.00"
+                  keyboardType="numeric"
+                  placeholderTextColor={Colors[vm.colorScheme].text + "80"}
+                  editable={!formik.values.isAutoCalculated}
+                />
+              )}
+            </View>
+            {!formik.values.isAutoCalculated &&
+              formik.errors.monthlyPayment &&
+              formik.touched.monthlyPayment && (
+                <ThemedText style={styles.errorText}>
+                  {formik.errors.monthlyPayment}
+                </ThemedText>
+              )}
+          </View>
+        </>
+      )}
+
+      {/* Due Date Field */}
+      <View style={styles.inputGroup}>
+        <ThemedText style={styles.label}>Due Date</ThemedText>
+        <TouchableOpacity
+          onPress={() => vm.setShowDueDateCalendar(true)}
+          style={[
+            styles.dateButton,
+            {
+              borderColor:
+                formik.errors.dueDate && formik.touched.dueDate
+                  ? "red"
+                  : Colors[vm.colorScheme].text,
+            },
+          ]}
+        >
+          <IconSymbol
+            name="calendar"
+            size={20}
+            color={Colors[vm.colorScheme].text}
+            style={styles.calendarIcon}
+          />
+          <ThemedText
+            style={[styles.dateText, { color: Colors[vm.colorScheme].text }]}
+          >
+            {formik.values.dueDate
+              ? format(formik.values.dueDate, "MMMM d, yyyy")
+              : "Select date"}
+          </ThemedText>
+        </TouchableOpacity>
+        {formik.errors.dueDate && formik.touched.dueDate && (
+          <ThemedText style={styles.errorText}>
+            {String(formik.errors.dueDate)}
+          </ThemedText>
+        )}
+      </View>
+    </>
+  );
 
   return (
     <>
@@ -41,345 +639,155 @@ export default function AddDebtScreen() {
         backgroundColor={vm.safeAreaBackground}
         barStyle={vm.theme === "dark" ? "light-content" : "dark-content"}
       />
-      <Formik<DebtFormValues>
-        initialValues={vm.initialValues}
-        validationSchema={validationSchema}
-        onSubmit={vm.handleSubmit}
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 88 : 0}
       >
-        {({
-          handleChange,
-          handleSubmit,
-          values,
-          errors,
-          touched,
-          setFieldValue,
-          setFieldTouched,
-        }) => (
-          <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={Platform.OS === "ios" ? 88 : 0}
-          >
-            <ScrollView
-              style={styles.scrollView}
-              showsVerticalScrollIndicator={false}
-            >
-              <View style={styles.form}>
-                <View style={styles.inputGroup}>
-                  <ThemedText style={styles.label}>Bank/Institution</ThemedText>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      {
-                        borderColor:
-                          errors.bank && touched.bank
-                            ? "red"
-                            : Colors[vm.colorScheme].text,
-                        color: Colors[vm.colorScheme].text,
-                      },
-                    ]}
-                    value={values.bank}
-                    onChangeText={handleChange("bank")}
-                    onBlur={() => setFieldTouched("bank")}
-                    placeholder="Enter bank or institution name"
-                    placeholderTextColor={Colors[vm.colorScheme].text + "80"}
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.form}>
+            {/* Debt Type Selection */}
+            <View style={styles.inputGroup}>
+              <ThemedText style={styles.label}>Debt Type</ThemedText>
+              <View style={styles.typeContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.typeButton,
+                    {
+                      backgroundColor:
+                        formik.values.type === "loan"
+                          ? Colors[vm.colorScheme].tint
+                          : "transparent",
+                      borderColor: Colors[vm.colorScheme].text,
+                    },
+                  ]}
+                  onPress={() => formik.setFieldValue("type", "loan")}
+                >
+                  <IconSymbol
+                    name="doc.text.fill"
+                    size={20}
+                    color={
+                      formik.values.type === "loan"
+                        ? "#fff"
+                        : Colors[vm.colorScheme].text
+                    }
+                    style={styles.typeIcon}
                   />
-                  {errors.bank && touched.bank && (
-                    <ThemedText style={styles.errorText}>
-                      {errors.bank}
-                    </ThemedText>
-                  )}
-                </View>
-                <View style={styles.inputGroup}>
-                  <ThemedText style={styles.label}>Total Debt</ThemedText>
-                  <View
+                  <ThemedText
                     style={[
-                      styles.currencyInputContainer,
+                      styles.typeText,
                       {
-                        borderColor:
-                          errors.totalDebt && touched.totalDebt
-                            ? "red"
+                        color:
+                          formik.values.type === "loan"
+                            ? "#fff"
                             : Colors[vm.colorScheme].text,
                       },
                     ]}
                   >
-                    <ThemedText style={styles.currencySymbol}>₱</ThemedText>
-                    <TextInput
-                      style={[
-                        styles.currencyInput,
-                        {
-                          color: Colors[vm.colorScheme].text,
-                        },
-                      ]}
-                      value={formatCurrencyForDisplay(values.totalDebt)}
-                      onChangeText={(text) =>
-                        vm.handleCurrencyChange(
-                          "totalDebt",
-                          text,
-                          setFieldValue,
-                        )
-                      }
-                      onBlur={() => setFieldTouched("totalDebt")}
-                      placeholder="0.00"
-                      keyboardType="numeric"
-                      placeholderTextColor={Colors[vm.colorScheme].text + "80"}
-                    />
-                  </View>
-                  {errors.totalDebt && touched.totalDebt && (
-                    <ThemedText style={styles.errorText}>
-                      {errors.totalDebt}
-                    </ThemedText>
-                  )}
-                </View>
-                <View style={styles.inputGroup}>
-                  <ThemedText style={styles.label}>Monthly Payment</ThemedText>
-                  <View
-                    style={[
-                      styles.currencyInputContainer,
-                      {
-                        borderColor:
-                          errors.monthlyPayment && touched.monthlyPayment
-                            ? "red"
-                            : Colors[vm.colorScheme].text,
-                      },
-                    ]}
-                  >
-                    <ThemedText style={styles.currencySymbol}>₱</ThemedText>
-                    <TextInput
-                      style={[
-                        styles.currencyInput,
-                        {
-                          color: Colors[vm.colorScheme].text,
-                        },
-                      ]}
-                      value={formatCurrencyForDisplay(values.monthlyPayment)}
-                      onChangeText={(text) =>
-                        vm.handleCurrencyChange(
-                          "monthlyPayment",
-                          text,
-                          setFieldValue,
-                        )
-                      }
-                      onBlur={() => setFieldTouched("monthlyPayment")}
-                      placeholder="0.00"
-                      keyboardType="numeric"
-                      placeholderTextColor={Colors[vm.colorScheme].text + "80"}
-                    />
-                  </View>
-                  {errors.monthlyPayment && touched.monthlyPayment && (
-                    <ThemedText style={styles.errorText}>
-                      {errors.monthlyPayment}
-                    </ThemedText>
-                  )}
-                </View>
-                <View style={styles.inputGroup}>
-                  <ThemedText style={styles.label}>Term</ThemedText>
-                  <View style={styles.termContainer}>
-                    <TextInput
-                      style={[
-                        styles.termInput,
-                        {
-                          borderColor:
-                            errors.term && touched.term
-                              ? "red"
-                              : Colors[vm.colorScheme].text,
-                          color: Colors[vm.colorScheme].text,
-                        },
-                      ]}
-                      value={values.term}
-                      onChangeText={handleChange("term")}
-                      onBlur={() => setFieldTouched("term")}
-                      placeholder="Enter term"
-                      keyboardType="numeric"
-                      placeholderTextColor={Colors[vm.colorScheme].text + "80"}
-                    />
-                    <View style={styles.termTypeContainer}>
-                      <TouchableOpacity
-                        style={[
-                          styles.termTypeButton,
-                          {
-                            backgroundColor:
-                              values.termType === "months"
-                                ? Colors[vm.colorScheme].tint
-                                : "transparent",
-                          },
-                          { borderColor: Colors[vm.colorScheme].text },
-                        ]}
-                        onPress={() => setFieldValue("termType", "months")}
-                      >
-                        <ThemedText
-                          style={[
-                            styles.termTypeText,
-                            {
-                              color:
-                                values.termType === "months"
-                                  ? "#fff"
-                                  : Colors[vm.colorScheme].text,
-                            },
-                          ]}
-                        >
-                          Months
-                        </ThemedText>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[
-                          styles.termTypeButton,
-                          {
-                            backgroundColor:
-                              values.termType === "years"
-                                ? Colors[vm.colorScheme].tint
-                                : "transparent",
-                          },
-                          { borderColor: Colors[vm.colorScheme].text },
-                        ]}
-                        onPress={() => setFieldValue("termType", "years")}
-                      >
-                        <ThemedText
-                          style={[
-                            styles.termTypeText,
-                            {
-                              color:
-                                values.termType === "years"
-                                  ? "#fff"
-                                  : Colors[vm.colorScheme].text,
-                            },
-                          ]}
-                        >
-                          Years
-                        </ThemedText>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                  {errors.term && touched.term && (
-                    <ThemedText style={styles.errorText}>
-                      {errors.term}
-                    </ThemedText>
-                  )}
-                </View>
-                <View style={styles.inputGroup}>
-                  <ThemedText style={styles.label}>Start Date</ThemedText>
-                  <TouchableOpacity
-                    onPress={() => vm.setShowStartDateCalendar(true)}
-                    style={[
-                      styles.dateButton,
-                      {
-                        borderColor:
-                          errors.startDate && touched.startDate
-                            ? "red"
-                            : Colors[vm.colorScheme].text,
-                      },
-                    ]}
-                  >
-                    <IconSymbol
-                      name="calendar"
-                      size={20}
-                      color={Colors[vm.colorScheme].text}
-                      style={styles.calendarIcon}
-                    />
-                    <ThemedText
-                      style={[
-                        styles.dateText,
-                        { color: Colors[vm.colorScheme].text },
-                      ]}
-                    >
-                      {format(values.startDate, "MMMM d, yyyy")}
-                    </ThemedText>
-                  </TouchableOpacity>
-                  {errors.startDate && touched.startDate && (
-                    <ThemedText style={styles.errorText}>
-                      {String(errors.startDate)}
-                    </ThemedText>
-                  )}
-                </View>
-                <View style={styles.inputGroup}>
-                  <ThemedText style={styles.label}>Due Date</ThemedText>
-                  <TouchableOpacity
-                    onPress={() => vm.setShowDueDateCalendar(true)}
-                    style={[
-                      styles.dateButton,
-                      {
-                        borderColor:
-                          errors.dueDate && touched.dueDate
-                            ? "red"
-                            : Colors[vm.colorScheme].text,
-                      },
-                    ]}
-                  >
-                    <IconSymbol
-                      name="calendar"
-                      size={20}
-                      color={Colors[vm.colorScheme].text}
-                      style={styles.calendarIcon}
-                    />
-                    <ThemedText
-                      style={[
-                        styles.dateText,
-                        { color: Colors[vm.colorScheme].text },
-                      ]}
-                    >
-                      {format(values.dueDate, "MMMM d, yyyy")}
-                    </ThemedText>
-                  </TouchableOpacity>
-                  {errors.dueDate && touched.dueDate && (
-                    <ThemedText style={styles.errorText}>
-                      {String(errors.dueDate)}
-                    </ThemedText>
-                  )}
-                </View>
-              </View>
-            </ScrollView>
+                    Loan
+                  </ThemedText>
+                </TouchableOpacity>
 
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.submitButton,
-                  { backgroundColor: Colors[vm.colorScheme].tint },
-                ]}
-                onPress={() => handleSubmit()}
-              >
-                {vm.addDebtStatus?.isLoading ||
-                vm.updateDebtStatus?.isLoading ? (
-                  <ThemedText style={styles.submitButtonText}>
-                    {vm.isEditMode
-                      ? vm.updateDebtStatus?.isLoading
-                        ? "Updating..."
-                        : "Update Debt"
-                      : vm.addDebtStatus?.isLoading
-                        ? "Adding..."
-                        : "Add Debt"}
+                <TouchableOpacity
+                  style={[
+                    styles.typeButton,
+                    {
+                      backgroundColor:
+                        formik.values.type === "credit_card"
+                          ? Colors[vm.colorScheme].tint
+                          : "transparent",
+                      borderColor: Colors[vm.colorScheme].text,
+                    },
+                  ]}
+                  onPress={() => formik.setFieldValue("type", "credit_card")}
+                >
+                  <IconSymbol
+                    name="creditcard.fill"
+                    size={20}
+                    color={
+                      formik.values.type === "credit_card"
+                        ? "#fff"
+                        : Colors[vm.colorScheme].text
+                    }
+                    style={styles.typeIcon}
+                  />
+                  <ThemedText
+                    style={[
+                      styles.typeText,
+                      {
+                        color:
+                          formik.values.type === "credit_card"
+                            ? "#fff"
+                            : Colors[vm.colorScheme].text,
+                      },
+                    ]}
+                  >
+                    Credit Card
                   </ThemedText>
-                ) : (
-                  <ThemedText style={styles.submitButtonText}>
-                    {vm.isEditMode ? "Update Debt" : "Add Debt"}
-                  </ThemedText>
-                )}
-              </TouchableOpacity>
+                </TouchableOpacity>
+              </View>
             </View>
-            <BottomSheetCalendar
-              isVisible={vm.showStartDateCalendar}
-              onClose={() => vm.setShowStartDateCalendar(false)}
-              selectedDate={values.startDate}
-              onDateSelect={(date) => {
-                setFieldValue("startDate", date);
-                // vm.setShowStartDateCalendar(false);
-              }}
-              minDate={new Date()}
-              version="v2"
-            />
-            <BottomSheetCalendar
-              isVisible={vm.showDueDateCalendar}
-              onClose={() => vm.setShowDueDateCalendar(false)}
-              selectedDate={values.dueDate}
-              onDateSelect={(date) => {
-                setFieldValue("dueDate", date);
-                // vm.setShowDueDateCalendar(false);
-              }}
-              minDate={values.startDate}
-              version="v2"
-            />
-          </KeyboardAvoidingView>
-        )}
-      </Formik>
+
+            {/* Conditional Rendering of Form Fields */}
+            {formik.values.type === "loan"
+              ? renderLoanFields()
+              : renderCreditCardFields()}
+          </View>
+        </ScrollView>
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[
+              styles.submitButton,
+              {
+                backgroundColor: Colors[vm.colorScheme].tint,
+              },
+            ]}
+            onPress={() => formik.handleSubmit()}
+            // disabled={formik.values.type === "credit_card"}
+          >
+            {vm.addDebtStatus?.isLoading || vm.updateDebtStatus?.isLoading ? (
+              <ThemedText style={styles.submitButtonText}>
+                {vm.isEditMode
+                  ? vm.updateDebtStatus?.isLoading
+                    ? "Updating..."
+                    : "Update Debt"
+                  : vm.addDebtStatus?.isLoading
+                    ? "Adding..."
+                    : "Add Debt"}
+              </ThemedText>
+            ) : (
+              <ThemedText style={styles.submitButtonText}>
+                {vm.isEditMode ? "Update Debt" : "Add Debt"}
+              </ThemedText>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <BottomSheetCalendar
+          isVisible={vm.showStartDateCalendar}
+          onClose={() => vm.setShowStartDateCalendar(false)}
+          selectedDate={formik.values.startDate ?? new Date()}
+          onDateSelect={(date) => {
+            formik.setFieldValue("startDate", date);
+          }}
+          minDate={new Date()}
+          version="v2"
+        />
+        <BottomSheetCalendar
+          isVisible={vm.showDueDateCalendar}
+          onClose={() => vm.setShowDueDateCalendar(false)}
+          selectedDate={formik.values.dueDate ?? new Date()}
+          onDateSelect={(date) => {
+            formik.setFieldValue("dueDate", date);
+          }}
+          minDate={formik.values.startDate ?? undefined}
+          version="v2"
+        />
+      </KeyboardAvoidingView>
     </>
   );
 }
@@ -487,5 +895,41 @@ const styles = StyleSheet.create({
     padding: 12,
     paddingLeft: 0,
     borderWidth: 0,
+  },
+  typeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  typeButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  typeText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  typeIcon: {
+    marginRight: 8,
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxLabel: {
+    fontSize: 14,
   },
 });

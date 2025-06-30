@@ -1,3 +1,4 @@
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import useHeaderTheme from "@/hooks/useHeaderTheme";
 import { useGetUser } from "@/services/query/usegetUser";
 import { RootState } from "@/store";
@@ -58,9 +59,16 @@ export default function useViewModel() {
   const [lastBackup, setLastBackup] = useState<string | null>(null);
   const [timeSinceBackup, setTimeSinceBackup] = useState<number>(0);
   const bounceAnim = useRef(new Animated.Value(1)).current;
+  const { checking } = useAuthGuard();
 
   // Uses the debug variable for easy testing
   const subscriptionType: SubscriptionType = DEBUG_SUBSCRIPTION_TYPE;
+
+  /**
+   * @Api Call
+   * get the data from logged user
+   */
+  const userDataGet = userData
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
@@ -307,5 +315,6 @@ export default function useViewModel() {
     progressPercentage,
     handleNotificationsPress,
     isUserLoading,
+    checking,
   };
 }

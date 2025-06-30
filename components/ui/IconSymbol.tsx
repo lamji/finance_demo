@@ -44,7 +44,8 @@ export type IconSymbolName =
   | "checkmark.circle"
   | "exclamationmark.circle"
   | "exclamationmark.circle.fill"
-  | "clock.fill";
+  | "clock.fill"
+  | "banknote"; // Add the new icon name
 
 type IconMapping = Record<
   IconSymbolName,
@@ -96,6 +97,7 @@ const MAPPING = {
   "exclamationmark.circle": "error-outline",
   "exclamationmark.circle.fill": "error",
   "clock.fill": "access-time-filled",
+  banknote: "payments", // Add mapping to Material Icon equivalent
 } as IconMapping;
 
 /**
